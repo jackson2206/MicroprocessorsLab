@@ -1,0 +1,47 @@
+[1mdiff --cc nbproject/configurations.xml[m
+[1mindex b475eb8,1e74861..0000000[m
+[1mdeleted file mode 100755,100755[m
+[1m--- a/nbproject/configurations.xml[m
+[1m+++ /dev/null[m
+[1mdiff --git a/UART.s b/UART.s[m
+[1mdeleted file mode 100644[m
+[1mindex 32bf8df..0000000[m
+[1m--- a/UART.s[m
+[1m+++ /dev/null[m
+[36m@@ -1,36 +0,0 @@[m
+[31m-#include <xc.inc>[m
+[31m-    [m
+[31m-global  UART_Setup, UART_Transmit_Message[m
+[31m-[m
+[31m-psect	udata_acs   ; reserve data space in access ram[m
+[31m-UART_counter: ds    1	    ; reserve 1 byte for variable UART_counter[m
+[31m-[m
+[31m-psect	uart_code,class=CODE[m
+[31m-UART_Setup:[m
+[31m-    bsf	    SPEN	; enable[m
+[31m-    bcf	    SYNC	; synchronous[m
+[31m-    bcf	    BRGH	; slow speed[m
+[31m-    bsf	    TXEN	; enable transmit[m
+[31m-    bcf	    BRG16	; 8-bit generator only[m
+[31m-    movlw   103		; gives 9600 Baud rate (actually 9615)[m
+[31m-    movwf   SPBRG1, A	; set baud rate[m
+[31m-    bsf	    TRISC, PORTC_TX1_POSN, A	; TX1 pin is output on RC6 pin[m
+[31m-					; must set TRISC6 to 1[m
+[31m-    return[m
+[31m-[m
+[31m-UART_Transmit_Message:	    ; Message stored at FSR2, length stored in W[m
+[31m-    movwf   UART_counter, A[m
+[31m-UART_Loop_message:[m
+[31m-    movf    POSTINC2, W, A[m
+[31m-    call    UART_Transmit_Byte[m
+[31m-    decfsz  UART_counter, A[m
+[31m-    bra	    UART_Loop_message[m
+[31m-    return[m
+[31m-[m
+[31m-UART_Transmit_Byte:	    ; Transmits byte stored in W[m
+[31m-    btfss   TX1IF	    ; TX1IF is set when TXREG1 is empty[m
+[31m-    bra	    UART_Transmit_Byte[m
+[31m-    movwf   TXREG1, A[m
+[31m-    return[m
+[31m-[m
+[31m-[m
