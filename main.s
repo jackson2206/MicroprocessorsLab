@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message,LCD_clear
+extrn	LCD_Setup, LCD_Write_Message
 extrn   Keypad_Setup, Keypad_read
 	
 psect	udata_acs   ; reserve data space in access ram
