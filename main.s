@@ -1,7 +1,8 @@
 #include <xc.inc>
 
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
-extrn	LCD_Setup, LCD_Write_Message
+extrn	LCD_Setup, LCD_Write_Message,LCD_clear
+extrn   Keypad_Setup, Keypad_read
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -27,7 +28,14 @@ setup:	bcf	CFGS	; point to Flash program memory
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
 	call	LCD_Setup	; setup UART
-	goto	start
+	call    Keypad_Setup
+	call    Keypad_read
+	goto	read
+	clrf    PORTD,A
+read:
+    	call    Keypad_read
+	call    delay
+	goto    read
 	
 	; ******* Main programme ****************************************
 start: 	lfsr	0, myArray	; Load FSR0 with address in RAM	
@@ -48,6 +56,7 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	lfsr	2, myArray
 	call	UART_Transmit_Message
 
+	;call    LCD_clear
 	movlw	myTable_l	; output message to LCD
 	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, myArray
