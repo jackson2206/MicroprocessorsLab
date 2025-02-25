@@ -9,13 +9,11 @@ col:            ds    1
 row:            ds    1
 combination:    ds    1
 psect	Keypad_code,class=CODE
+    
+;symb_Table:
+;    db    
 Keypad_Setup:
     movlb   0x0F
-    clrf    TRISH,A
-    clrf    TRISJ,A
-    clrf    TRISF,A
-    clrf    PORTH,A
-    clrf    PORTJ,A
     clrf    TRISD,A
     bsf     REPU; bit that allows use of pull up resistors
     movlb   0x0
@@ -33,16 +31,15 @@ Keypad_read:
     movwf   TRISE,A
     call    delay
     movf    PORTE,W,A
-    addwf   combination,f,A
-    call Keypad_combine
-    return
-    
+    addwf   combination,f,A   
 Keypad_combine:
-    movff   combination,PORTH
-    call    compare
+    movff   combination,PORTD
+    call compare
     clrf    combination,A
     return
 compare:
+    clrf    combination,A
+    return
     return
     
     
