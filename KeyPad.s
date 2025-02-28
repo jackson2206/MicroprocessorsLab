@@ -6,12 +6,13 @@ psect	udata_acs   ; reserve data space in access ram
 Keypad_counter: ds    1	    ; reserve 1 byte for variable Keypad_counter
 delay_count:    ds    1
 col:            ds    1
-row:            ds    1
 combination:    ds    1
-psect	Keypad_code,class=CODE
+psect	udata_bank5 ; reserve data anywhere in RAM (here at 0x400)
+myArray:    ds 0x80 ; reserve 128 bytes for message data
     
-;symb_Table:
-;    db    
+ 
+psect	Keypad_code,class=CODE
+      
 Keypad_Setup:
     movlb   0x0F
     clrf    TRISD,A
@@ -34,15 +35,32 @@ Keypad_read:
     addwf   combination,f,A   
 Keypad_combine:
     movff   combination,PORTD
-    call compare
-    clrf    combination,A
+    movlw   0xBB
+    movwf   col,A
+    movf    combination,W,A
+Compare_up:
+    cpfseq  col,A
+    bra	    Compare_down
+    movlw   0x0
     return
-compare:
-    clrf    combination,A
+
+Compare_down:
+    sublw   10111101B
+    BNZ	    Compare_fw
+    movlw   0x40
     return
+Compare_fw:
+    movf    combination,W,A
+    sublw   11011101B
+    BNZ	    Compare_fb
+    movlw   0x01
     return
-    
-    
+Compare_fb:
+    movf    combination,W,A
+    sublw   01111101B
+    BNZ	    Keypad_read
+    movlw   -0x01
+    return
     
 delay:
     

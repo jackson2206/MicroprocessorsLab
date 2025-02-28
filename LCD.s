@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Send_Byte_I
+global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
@@ -8,12 +8,12 @@ LCD_cnt_h:	ds 1	; reserve 1 byte for variable LCD_cnt_h
 LCD_cnt_ms:	ds 1	; reserve 1 byte for ms counter
 LCD_tmp:	ds 1	; reserve 1 byte for temporary use
 LCD_counter:	ds 1	; reserve 1 byte for counting through nessage
-
+LCD_cnt:        ds 1   ; one byte for data
 PSECT	udata_acs_ovr,space=1,ovrld,class=COMRAM
 LCD_hex_tmp:	ds 1    ; reserve 1 byte for variable LCD_hex_tmp
 
-	LCD_E	EQU 5	; LCD enable bit
-    	LCD_RS	EQU 4	; LCD register select bit
+LCD_E	EQU 5	; LCD enable bit
+LCD_RS	EQU 4	; LCD register select bit
 
 psect	lcd_code,class=CODE
     
@@ -123,7 +123,34 @@ LCD_Enable:	    ; pulse enable bit LCD_E for 500ns
 	nop
 	bcf	LATB, LCD_E, A	    ; Writes data to LCD
 	return
-    
+	
+LCD_Clear:
+	movlw	00000001B	; display clear
+	call	LCD_Send_Byte_I
+	movlw	2		; wait 2ms
+	call	LCD_delay_ms
+	return
+LCD_Shift_up:    ;shifts to second line
+	addlw   0x80
+	call	LCD_Send_Byte_I
+	movlw   2
+	call	LCD_delay_ms
+	return
+LCD_Shift_down:    ;wreg stores shift
+    ;takes shift and shifts by that
+	addlw   0x40
+	addlw   0x80
+	call	LCD_Send_Byte_I
+	movlw   2
+	call	LCD_delay_ms
+	return	
+LCD_up_down:
+	addlw  0x80
+    	call	LCD_Send_Byte_I
+	movlw   2
+	call	LCD_delay_ms
+	return	
+	
 ; ** a few delay routines below here as LCD timing can be quite critical ****
 LCD_delay_ms:		    ; delay given in ms in W
 	movwf	LCD_cnt_ms, A
