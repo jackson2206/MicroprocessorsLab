@@ -42,34 +42,11 @@ read:
 	movwf   adrr,A
 	call    delay
 	call    Keypad_read
-	addwf   up,f,A
-	movf	up,W,A
 	call    delay
 	call	LCD_up_down
 	movf    adrr,W,A
 	call    LCD_Send_Byte_D
-	goto    read2
-read2:
-    	movlw   0xBB
-	movwf   adrr,A
-	call    delay
-	call    Keypad_read
-	addwf   up,f,A
-	movf	up,W,A
-	call    delay
-	call	LCD_up_down
-	movf    adrr,W,A
-	call    LCD_Send_Byte_D
-	goto    $
-start:
-	movlw	0x84
-	movwf   adrr,A
-	call    delay
-	movlw   0x0f
-	call	LCD_Shift_up
-	movf    adrr,W,A
-	call    LCD_Send_Byte_D
-	goto    $
+	goto    read
 	
 
 	goto    $
