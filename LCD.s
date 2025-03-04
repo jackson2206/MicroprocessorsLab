@@ -138,6 +138,7 @@ LCD_Shift_up:    ;shifts to second line
 	return
 LCD_Shift_down:    ;wreg stores shift
     ;takes shift and shifts by that
+	movlw	0x0
 	addlw   0x40
 	addlw   0x80
 	call	LCD_Send_Byte_I
@@ -145,7 +146,8 @@ LCD_Shift_down:    ;wreg stores shift
 	call	LCD_delay_ms
 	return	
 LCD_up_down:
-	addlw  0x80
+	movlw	0x0
+	addlw	0x80
     	call	LCD_Send_Byte_I
 	movlw   2
 	call	LCD_delay_ms
