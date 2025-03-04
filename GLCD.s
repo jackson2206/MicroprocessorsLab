@@ -27,6 +27,16 @@ GLCD_Setup:
 	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
 	movlw	00111110B
 	call	LCD_Send_Byte_I
+	movlw	40
+	call	LCD_delay_ms
+	movlw	0x40
+	call	LCD_Send_Byte_I
+	movlw	40
+	call	LCD_delay_ms
+	movlw	0xC0
+	call	LCD_Send_Byte_I
+	movlw	0x3F
+	call	LCD_Send_Byte_I
 	return
 	
 	
@@ -104,5 +114,107 @@ lcdlp1:	decf 	LCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 
 
 end
+;
+;
+;#include <xc.inc>
 
+global GLCD_Setup
+;
+;; Define control pins for GLCD
+;GLCD_CS1   EQU 1       ; Chip Select 1 (CS1) connected to pin 1
+;GLCD_CS2   EQU 2       ; Chip Select 2 (CS2) connected to pin 2
+;GLCD_RS    EQU 5       ; Register Select (RS) connected to pin 5
+;GLCD_E     EQU 7       ; Enable (E) connected to pin 7
 
+; Define some variables in the data section
+;psect udata_acs   ; named variables in access ram
+;LCD_cnt_l:    ds 1    ; reserve 1 byte for variable LCD_cnt_l
+;LCD_cnt_h:    ds 1    ; reserve 1 byte for variable LCD_cnt_h
+;LCD_cnt_ms:   ds 1    ; reserve 1 byte for ms counter
+;LCD_tmp:      ds 1    ; reserve 1 byte for temporary use
+;LCD_counter:  ds 1    ; reserve 1 byte for counting through message
+;LCD_cnt:      ds 1    ; one byte for data
+;PSECT udata_acs_ovr, space=1, ovrld, class=COMRAM
+;LCD_hex_tmp:  ds 1    ; reserve 1 byte for variable LCD_hex_tmp
+;
+;; Main program entry
+;org 0x00           ; Reset vector, start from address 0x00
+;goto Start         ; Jump to start of the program
+;
+;Start:
+;    call GLCD_Setup  ; Initialize the GLCD
+;    call WriteText    ; Write "HELLO" to the screen
+;    loop:
+;        goto loop    ; Infinite loop to keep the program running
+;
+;; Setup function for the GLCD
+;GLCD_Setup:
+;    ; Initialize control pins as outputs
+;    bcf TRISC, GLCD_CS1  ; Set CS1 as output (Clear the corresponding bit in TRISC)
+;    bcf TRISC, GLCD_CS2  ; Set CS2 as output (Clear the corresponding bit in TRISC)
+;    bcf TRISC, GLCD_RS   ; Set RS as output (Clear the corresponding bit in TRISC)
+;    bcf TRISC, GLCD_E    ; Set E as output (Clear the corresponding bit in TRISC)
+;
+;    ; Set PORTB as output for data lines
+;    bcf TRISB, 0xFF      ; Set all bits of PORTB as output (PORTB for data)
+;
+;    ; Initialize the GLCD display (assuming command sequence for Winstar GLCD)
+;    call SendCommand, 0x3F   ; Function Set Command (8-bit, 2 lines, 5x8 dots)
+;    call SendCommand, 0x0C   ; Display ON, Cursor OFF
+;    call SendCommand, 0x01   ; Clear Display
+;    return
+;
+;; Function to send a command to the GLCD
+;SendCommand:
+;    bcf  GLCD_RS           ; Set RS to 0 for command mode
+;    bcf  GLCD_CS1          ; Set CS1 low to select the GLCD
+;    bcf  GLCD_CS2          ; Set CS2 low
+;    movf  LCD_cnt, W       ; Load the command from LCD_cnt into W
+;    call PulseEnable       ; Send pulse to enable to latch the data
+;    return
+;
+;; Function to send data to the GLCD
+;SendData:
+;    bsf  GLCD_RS           ; Set RS to 1 for data mode
+;    bcf  GLCD_CS1          ; Set CS1 low to select the GLCD
+;    bcf  GLCD_CS2          ; Set CS2 low
+;    movf  LCD_cnt, W       ; Load data from LCD_cnt into W
+;    call PulseEnable       ; Send pulse to enable to latch the data
+;    return
+;
+;; Function to pulse the Enable pin to latch data into the GLCD
+;PulseEnable:
+;    bsf  GLCD_E            ; Set E high (Enable)
+;    nop                     ; Small delay
+;    bcf  GLCD_E            ; Set E low (Disable)
+;    nop                     ; Small delay
+;    return
+;
+;; Function to write a string to the GLCD (e.g., "HELLO")
+;WriteText:
+;    ; Write the first character 'H'
+;    movlw   'H'            ; Load ASCII value of 'H' into W
+;    movwf   LCD_cnt        ; Store W into LCD_cnt
+;    call    SendData       ; Send the character to the GLCD
+;
+;    ; Write the second character 'E'
+;    movlw   'E'            ; Load ASCII value of 'E' into W
+;    movwf   LCD_cnt        ; Store W into LCD_cnt
+;    call    SendData       ; Send the character to the GLCD
+;
+;    ; Write the third character 'L'
+;    movlw   'L'            ; Load ASCII value of 'L' into W
+;    movwf   LCD_cnt        ; Store W into LCD_cnt
+;    call    SendData       ; Send the character to the GLCD
+;
+;    ; Write the fourth character 'L'
+;    movlw   'L'            ; Load ASCII value of 'L' into W
+;    movwf   LCD_cnt        ; Store W into LCD_cnt
+;    call    SendData       ; Send the character to the GLCD
+;
+;    ; Write the fifth character 'O'
+;    movlw   'O'            ; Load ASCII value of 'O' into W
+;    movwf   LCD_cnt        ; Store W into LCD_cnt
+;    call    SendData       ; Send the character to the GLCD
+;
+;    return
