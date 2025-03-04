@@ -46,21 +46,11 @@ Compare_up:
 
 Compare_down:
     sublw   10111101B
-    BNZ	    Compare_fw
+    BNZ	    Keypad_read
     movlw   0x40
     return
-Compare_fw:
-    movf    combination,W,A
-    sublw   11011101B
-    BNZ	    Compare_fb
-    movlw   0x01
-    return
-Compare_fb:
-    movf    combination,W,A
-    sublw   01111101B
-    BNZ	    Keypad_read
-    movlw   -0x01
-    return
+start_button:
+    
     
 delay:
     
