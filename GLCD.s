@@ -22,9 +22,9 @@ GLCD_RW	    EQU 3
 psect	Glcd_code,class=CODE
 
 GLCD_Setup:
-	clrf	TRISD
-	clrf	LATD
-	clrf	LATB
+	clrf	TRISD,A
+	clrf	LATD,A
+	clrf	LATB,A
 	movlw	0xC0
 	andwf	TRISB,f,A
 	bsf	LATB,GLCD_RST,A
@@ -42,7 +42,7 @@ GLCD_Setup:
 	movlw	0
 	call	Set_Xaddress
 	movlw	0
-	call	Set_Yaddress
+	call	Set_yaddress
 	movlw	1
 	call	display_on_off ; turns display on
 	return
@@ -116,7 +116,7 @@ display2:
 	bcf	LATB,GLCD_CS1,A
 	call	GLCD_Send_Byte_D
 	return
-display1:
+display_1:
 	movf	YADD,W,A
 	bsf	LATB,GLCD_CS1,A
 	bcf	LATB,GLCD_CS2,A
