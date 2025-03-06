@@ -60,7 +60,7 @@ GLCD_Setup:
 ;	return
 
 GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
-	movwf   LATD, A	    ; output data bits to LCD
+    	movwf   LATD, A	    ; output data bits to LCD
 	bcf	LATB,GLCD_RW, A
 	bcf	LATB, GLCD_RS, A	; Instruction write clear RS bit
 	call    GLCD_Enable  ; Pulse enable Bit 
@@ -69,8 +69,8 @@ GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	return
 GLCD_Send_Byte_D:
 	movwf	LATD,A
-	bsf	LATB,GLCD_RS,A
 	bcf	LATB,GLCD_RW,A
+	bsf	LATB,GLCD_RS,A
 	call	GLCD_Enable
 	movlw	10	    ; delay 40us
 	call	GLCD_delay_x4us
