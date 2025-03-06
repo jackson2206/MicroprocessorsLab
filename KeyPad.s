@@ -19,6 +19,7 @@ Keypad_Setup:
     movlb   0x0
     clrf    LATE,A
     clrf    PORTF,A
+    clrf    TRISF,A
     return
 
 Keypad_read:
@@ -35,8 +36,8 @@ Keypad_read:
 Keypad_combine:
     movff   combination,PORTF
     movlw   0xBB
-    movwf   col,A
-    movf    combination,W,A
+    movff    combination,col
+    clrf    combination,A
 Compare_up:
     cpfseq  col,A
     bra	    Compare_down
@@ -44,6 +45,7 @@ Compare_up:
     return
 
 Compare_down:
+    movf    col,W,A
     sublw   10111101B
     BNZ	    Keypad_read
     movlw   0x40
