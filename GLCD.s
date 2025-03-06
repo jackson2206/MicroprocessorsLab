@@ -11,13 +11,13 @@ GLCD_counter:	ds 1	; reserve 1 byte for counting through nessage
 GLCD_cnt:       ds 1   ; one byte for data
 YADD:		ds 1 
 B_:		ds 1
-PSECT	udata_acs_ovr,space=1,ovrld,class=COMRAM
 
 GLCD_CS1    EQU 0
 GLCD_CS2    EQU 1
 GLCD_RS	    EQU 2
 GLCD_E	    EQU 4
-GLCD_RST    EQU 5	    
+GLCD_RST    EQU 5
+GLCD_RW	    EQU 3    
 
 psect	Glcd_code,class=CODE
 
@@ -26,13 +26,15 @@ GLCD_Setup:
 	movwf	YADD,A
 	clrf    LATB, A
 	clrf	LATD,A
-	clrf	TRISB,A
+	movlw	11000000B
+	andwf	TRISB,F,A
 	clrf	TRISD,A
 	bsf	LATB,GLCD_RST,A
 	bsf	LATB,GLCD_CS1,A
-	bsf	LATB,GLCD_CS2,A
-	movlw	20
-	
+	bcf	LATB,GLCD_CS2,A
+	bcf	LATB,GLCD_RST,A
+	bsf	LATB,GLCD_RW,A
+	call	GLCD_Enable
 	movlw	0x0
 	call	Display_on_off
 	movlw	0x0
@@ -59,16 +61,20 @@ GLCD_Setup:
 
 GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	movwf   LATD, A	    ; output data bits to LCD
+	bcf	LATB,GLCD_RW, A
 	bcf	LATB, GLCD_RS, A	; Instruction write clear RS bit
 	call    GLCD_Enable  ; Pulse enable Bit 
-	
+	call	GLCD_delay
+	bsf	LATB,GLCD_RW,A
 	return
 GLCD_Send_Byte_D:
 	movwf	LATD,A
 	bsf	LATB,GLCD_RS,A
+	bcf	LATB,GLCD_RW,A
 	call	GLCD_Enable
 	movlw	10	    ; delay 40us
 	call	GLCD_delay_x4us
+	bsf	LATB,GLCD_RW,A
 Display_on_off:
 	    addlw   0x0
 	    call    GLCD_Send_Byte_I
@@ -78,56 +84,44 @@ Display_on_off:
 Set_zaddress:
 	    addlw   0xC0
 	    call    GLCD_Send_Byte_I
-	    call    GLCD_delay
 	    return
 Set_Xaddress: ; takes the page number in WREG
 	    addlw   0xB8
 	    call    GLCD_Send_Byte_I
-	    call    GLCD_delay
 	    return
 Set_yaddress:
 	    ; takes y address, if yaddress is greater than 63 cs2 pin enabled
-	    cpfslt  YADD,A
+	    cpfsgt  YADD,A
 	    bra	    nd_display
 st_display: 
+	    bcf	    LATB,GLCD_RW,A
 	    bsf	    LATB,GLCD_CS1,A
 	    bcf	    LATB,GLCD_CS2,A
 	    call    GLCD_Enable
 	    addlw   0x40
 	    call    GLCD_Send_Byte_I
-	    call    GLCD_delay
 	    return 
 nd_display:
+    	    bcf	    LATB,GLCD_RW,A
 	    bsf	    LATB,GLCD_CS2,A
 	    bcf	    LATB,GLCD_CS1,A
 	    call    GLCD_Enable
+	    
 	    sublw   64
 	    addlw   0x40
 	    call    GLCD_Send_Byte_I
-	    call    GLCD_delay
 	    return    
 GLCD_Enable:	    ; pulse enable bit LCD_E for 500ns
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	bsf	LATB, GLCD_E, A	    ; Take enable high
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	call	GLCD_delay
-	call	GLCD_delay
-	bcf	LATB, GLCD_E, A	    ; Writes data to LCD
+	    nop
+	    nop
+	    nop
+	    bcf	    LATB,GLCD_E,A; Writes data to LCD
+	    call    GLCD_delay
+	    call    GLCD_delay
+	    bsf	    LATB,GLCD_E,A
+	    call    GLCD_delay
+	    call    GLCD_delay
 	return
-;	
 ; ** a few delay routines below here as LCD timing can be quite critical ****
 GLCD_delay_ms:		    ; delay given in ms in W
 	movwf	GLCD_cnt_ms, A
@@ -154,6 +148,4 @@ Glcdlp1:decf 	GLCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 	subwfb 	GLCD_cnt_h, F, A	; no carry when 0x00 -> 0xff
 	bc 	Glcdlp1		; carry, then loop again
 	return			; carry reset so return
-
-
 end

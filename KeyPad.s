@@ -15,7 +15,6 @@ psect	Keypad_code,class=CODE
       
 Keypad_Setup:
     movlb   0x0F
-    clrf    TRISD,A
     bsf     REPU; bit that allows use of pull up resistors
     movlb   0x0
     clrf    LATE,A
@@ -34,7 +33,7 @@ Keypad_read:
     movf    PORTE,W,A
     addwf   combination,f,A   
 Keypad_combine:
-    movff   combination,PORTD
+    movff   combination,PORTF
     movlw   0xBB
     movwf   col,A
     movf    combination,W,A

@@ -32,7 +32,6 @@ rst: 	org 0x0
 
 	; ******* Programme FLASH read Setup Code ***********************
 setup:	bcf	CFGS	; point to Flash program memory  
-        clrf    PORTD,A
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
 ;	call	LCD_Setup	; setup UART
@@ -120,9 +119,9 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 	
 GLCD:
-    movlw   0
+    movlw   5
     call    Set_Xaddress
-    movlw   22
+    movlw   66
     call    Set_yaddress
     movlw   0xff
     call    GLCD_Send_Byte_D
