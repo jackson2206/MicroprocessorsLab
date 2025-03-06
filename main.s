@@ -1,7 +1,7 @@
 #include <xc.inc>
 extrn   Keypad_Setup, Keypad_read
 extrn	UART_Setup, UART_Transmit_Message  ; external uart subroutines
-extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
+;extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
 extrn	GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D    
  ; external LCD subroutines
 extrn	ADC_Setup, ADC_Read		   ; external ADC subroutines
@@ -34,24 +34,24 @@ rst: 	org 0x0
 setup:	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
-	call	LCD_Setup	; setup UART
+;	call	LCD_Setup	; setup UART
 	call    ADC_Setup   ; setup ADC
 	call    Keypad_Setup
 	call	GLCD_Setup
 	movlw	0x0
 	movwf	up,A
-	goto	read
+	goto	GLCD
 	
-read:
-	movlw   0xBB
-	movwf   adrr,A
-	call    delay
-	call    Keypad_read
-	call    delay
-	call	LCD_up_down
-	movf    adrr,W,A
-	call    LCD_Send_Byte_D
-	goto    read
+;read:
+;	movlw   0xBB
+;	movwf   adrr,A
+;	call    delay
+;	call    Keypad_read
+;	call    delay
+;	call	LCD_up_down
+;	movf    adrr,W,A
+;	call    LCD_Send_Byte_D
+;	goto    read
 	
 
 ;;	goto    $
@@ -118,15 +118,15 @@ read:
 	
 	
 	
-;GLCD:
-;    movlw   5
-;    call    Set_Xaddress
-;    movlw   66
-;    call    Set_yaddress
-;    movlw   0xff
-;    call    GLCD_Send_Byte_D
-;    movlw   0xff
-;    call    GLCD_Send_Byte_D
+GLCD:
+    movlw   5
+    call    Set_Xaddress
+    movlw   66
+    call    Set_yaddress
+    movlw   0xff
+    call    GLCD_Send_Byte_D
+    movlw   0xff
+    call    GLCD_Send_Byte_D
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
 	return
