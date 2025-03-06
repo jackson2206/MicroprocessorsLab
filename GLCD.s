@@ -21,34 +21,37 @@ GLCD_RW	    EQU 3
 
 psect	Glcd_code,class=CODE
 
-GLCD_Setup:	
-	movlw	64
-	movwf	YADD,A
-	clrf    LATB, A
-	clrf	LATD,A
-	movlw	11000000B
-	andwf	TRISB,F,A
-	clrf	TRISD,A
+GLCD_Setup:
+	clrf	TRISD
+	clrf	LATD
+	clrf	LATB
+	movlw	0xC0
+	andwf	TRISB,f,A
 	bsf	LATB,GLCD_RST,A
-	bsf	LATB,GLCD_CS1,A
-	bcf	LATB,GLCD_CS2,A
-	bcf	LATB,GLCD_RST,A
-	bsf	LATB,GLCD_RW,A
-	call	GLCD_Enable
-	movlw	0x0
-	call	Display_on_off
-	movlw	0x0
+	nop
+	nop
+	bcf	LATB,GLCD_RW,A
+	bcf	LATB,GLCD_RST,A ; resets the display for new run
+	nop
+	nop
+	nop
+	nop
+	bsf	LATB,GLCD_RST,A ; high in operation
+	movlw	0
+	call	display_on_off ; turns display off
+	movlw	0
 	call	Set_Xaddress
 	movlw	0
-	call	Set_yaddress
-	movlw	0
-	call	Set_zaddress
+	call	Set_Yaddress
 	movlw	1
-	call	Display_on_off
-	
-	
+	call	display_on_off ; turns display on
 	return
-	
+display_on_off:
+	addlw	0x3E
+	bsf	LATB,GLCD_CS1,A
+	bsf	LATB,GLCD_CS2,A
+	call	GLCD_Send_Byte_I
+	return
 	
 ;LCD_Write_Message:	    ; Message stored at FSR2, length stored in W
 ;	movwf   LCD_counter, A
@@ -60,68 +63,65 @@ GLCD_Setup:
 ;	return
 
 GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
-    	movwf   LATD, A	    ; output data bits to LCD
-	bcf	LATB,GLCD_RW, A
-	bcf	LATB, GLCD_RS, A	; Instruction write clear RS bit
-	call    GLCD_Enable  ; Pulse enable Bit 
-	call	GLCD_delay
-	bsf	LATB,GLCD_RW,A
-	return
-GLCD_Send_Byte_D:
+	bcf	LATB,GLCD_E,A ;enable pin low
+	nop
+	nop
 	movwf	LATD,A
+	bcf	LATB,GLCD_RS,A ; SET RS=0
 	bcf	LATB,GLCD_RW,A
-	bsf	LATB,GLCD_RS,A
-	call	GLCD_Enable
-	movlw	10	    ; delay 40us
-	call	GLCD_delay_x4us
-	bsf	LATB,GLCD_RW,A
-Display_on_off:
-	    addlw   0x0
-	    call    GLCD_Send_Byte_I
-	    call    GLCD_delay
-	    return
-	
-Set_zaddress:
-	    addlw   0xC0
-	    call    GLCD_Send_Byte_I
-	    return
-Set_Xaddress: ; takes the page number in WREG
-	    addlw   0xB8
-	    call    GLCD_Send_Byte_I
-	    return
-Set_yaddress:
-	    ; takes y address, if yaddress is greater than 63 cs2 pin enabled
-	    cpfsgt  YADD,A
-	    bra	    nd_display
-st_display: 
-	    bcf	    LATB,GLCD_RW,A
-	    bsf	    LATB,GLCD_CS1,A
-	    bcf	    LATB,GLCD_CS2,A
-	    call    GLCD_Enable
-	    addlw   0x40
-	    call    GLCD_Send_Byte_I
-	    return 
-nd_display:
-    	    bcf	    LATB,GLCD_RW,A
-	    bsf	    LATB,GLCD_CS2,A
-	    bcf	    LATB,GLCD_CS1,A
-	    call    GLCD_Enable
-	    
-	    sublw   64
-	    addlw   0x40
-	    call    GLCD_Send_Byte_I
-	    return    
-GLCD_Enable:	    ; pulse enable bit LCD_E for 500ns
-	    nop
-	    nop
-	    nop
-	    bcf	    LATB,GLCD_E,A; Writes data to LCD
-	    call    GLCD_delay
-	    call    GLCD_delay
-	    bsf	    LATB,GLCD_E,A
-	    call    GLCD_delay
-	    call    GLCD_delay
+	nop
+	bsf	LATB,GLCD_E,A ; enable pin high
+	movlw	3
+	call	GLCD_delay_ms ;  3 ms delay
+	nop
+	bcf	LATB,GLCD_E,A ; enable pin low
+	nop
+	movlw	3
+	call	GLCD_delay_ms 
+	nop
 	return
+GLCD_Send_Byte_D: ; transmits byte in wreg to data
+	bcf	LATB,GLCD_E,A ;enable pin low
+	nop
+	movwf	LATD,A
+	bsf	LATB,GLCD_RS,A ; set RS=1
+	bcf	LATB,GLCD_RW,A
+	nop
+	bsf	LATB,GLCD_E,A ; enable pin high
+	movlw	3
+	call	GLCD_delay_ms ; 3 ms delay
+	nop
+	bcf	LATB,GLCD_E,A ; enable pin low
+	nop
+	movlw	3
+	call	GLCD_delay_ms
+	nop
+	return
+Set_Xaddress: ; sets the page of the display
+    ; input position as decimal, will add 0xB8 to it to get correct address
+	addlw	0xB8
+	bsf	LATB,GLCD_CS1,A
+	bsf	LATB,GLCD_CS2,A
+	call	GLCD_Send_Byte_I
+	return
+Set_yaddress: ; sets the column of the display
+    ;input the column number between 0 ~ 127
+	movwf	YADD,A
+	addlw	64
+	cpfsgt	YADD,A
+	bra	display_1
+display2:
+	movf	YADD,W,A
+	bsf	LATB,GLCD_CS2,A
+	bcf	LATB,GLCD_CS1,A
+	call	GLCD_Send_Byte_D
+	return
+display1:
+	movf	YADD,W,A
+	bsf	LATB,GLCD_CS1,A
+	bcf	LATB,GLCD_CS2,A
+	call	GLCD_Send_Byte_D
+	return	
 ; ** a few delay routines below here as LCD timing can be quite critical ****
 GLCD_delay_ms:		    ; delay given in ms in W
 	movwf	GLCD_cnt_ms, A
