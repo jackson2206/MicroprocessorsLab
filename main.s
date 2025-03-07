@@ -2,9 +2,9 @@
 extrn   Keypad_Setup, Keypad_read
 extrn	UART_Setup, UART_Transmit_Message  ; external uart subroutines
 ;extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
-extrn	GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D    
+extrn	GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D  ,clear  
  ; external LCD subroutines
-extrn	ADC_Setup, ADC_Read		   ; external ADC subroutines
+extrn	write
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -35,7 +35,7 @@ setup:	bcf	CFGS	; point to Flash program memory
 	bsf	EEPGD 	; access Flash program memory
 	call	UART_Setup	; setup UART
 ;	call	LCD_Setup	; setup UART
-	call    ADC_Setup   ; setup ADC
+;	call    ADC_Setup   ; setup ADC
 	call    Keypad_Setup
 	call	GLCD_Setup
 	movlw	0x0
@@ -119,15 +119,21 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 	
 GLCD:
-    movlw   22
+;   movlw   0
+;   call    clear
+    movlw   0
     call    Set_yaddress
-    movlw   5
+    movlw   0
     call    Set_Xaddress
-    movlw   0xff
-    call    GLCD_Send_Byte_D
-    movlw   0xff
-    call    GLCD_Send_Byte_D
-    goto    GLCD
+glcdloop:
+;    movlw   0xFF
+;    call    GLCD_Send_Byte_D
+;    movlw   0xFF
+;    call    GLCD_Send_Byte_D
+;    goto    glcdloop
+    call    write
+    goto    $
+    
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
 	return
