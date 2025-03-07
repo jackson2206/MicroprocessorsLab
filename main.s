@@ -119,12 +119,12 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 	
 GLCD:
-;   movlw   0
-;   call    clear
-    movlw   0
-    call    Set_yaddress
-    movlw   0
-    call    Set_Xaddress
+;    movlw   0
+;    call    clear
+;    movlw   0
+;    call    Set_yaddress
+;    movlw   0
+;    call    Set_Xaddress
 glcdloop:
 ;    movlw   0xFF
 ;    call    GLCD_Send_Byte_D
