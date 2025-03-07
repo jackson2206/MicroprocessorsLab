@@ -1,4 +1,8 @@
 #include <xc.inc>
+global  write
+extrn	GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D ,GLCD_Write_Message
+psect   udata_acs    
+counter: ds 1    
 psect	udata_bank ; reserve data anywhere in RAM (here at 0x400)
 charS:	ds 0x40
 charP:	ds 0x40
@@ -83,5 +87,29 @@ num0_list:
 	db	0x0,0x0,0x3E,0x51,0x49,0x45,0x3E,0x0
 	num0_	EQU 8
 	align	2
+	
+psect	char_code,class=CODE	
+write:
+	lfsr	0, charI	; Load FSR0 with address in RAM	
+	movlw	low highword(I_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(I_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(I_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	S_	; bytes to read
+	movwf 	counter, A		; our counter register
+loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	decfsz	counter, A		; count down to zero
+	bra	loop		; keep going until finished
+		
 
+	movlw	S_	; output message to LCD
+				; don't send the final carriage return to LCD
+	lfsr	2, charI
+	call	GLCD_Write_Message
+	clrf	counter
+	return
+	
 	
