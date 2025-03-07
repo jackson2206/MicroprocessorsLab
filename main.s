@@ -119,14 +119,15 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 	
 GLCD:
+    movlw   22
+    call    Set_yaddress
     movlw   5
     call    Set_Xaddress
-    movlw   66
-    call    Set_yaddress
     movlw   0xff
     call    GLCD_Send_Byte_D
     movlw   0xff
     call    GLCD_Send_Byte_D
+    goto    GLCD
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
 	return

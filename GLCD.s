@@ -36,7 +36,7 @@ GLCD_Setup:
 	nop
 	nop
 	nop
-	bsf	LATB,GLCD_RST,A ; high in operation
+	bsf	LATB,GLCD_RST,A ; reset pin high in operation
 	movlw	0
 	call	display_on_off ; turns display off
 	movlw	0
@@ -98,16 +98,14 @@ GLCD_Send_Byte_D: ; transmits byte in wreg to data
 	nop
 	return
 Set_Xaddress: ; sets the page of the display
-    ; input position as decimal, will add 0xB8 to it to get correct address
+    ; input position as decimal, will add 0xB8 to it to get correct address always specify after y address
 	addlw	0xB8
-	bsf	LATB,GLCD_CS1,A
-	bsf	LATB,GLCD_CS2,A
 	call	GLCD_Send_Byte_I
 	return
 Set_yaddress: ; sets the column of the display
     ;input the column number between 0 ~ 127
 	movwf	YADD,A
-	addlw	64
+	movlw	64
 	cpfsgt	YADD,A
 	bra	display_1
 display2:
