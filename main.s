@@ -2,7 +2,7 @@
 extrn   Keypad_Setup, Keypad_read
 extrn	UART_Setup, UART_Transmit_Message  ; external uart subroutines
 ;extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
-extrn	GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D  ,clear  
+extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page
  ; external LCD subroutines
 extrn	write
 	
@@ -131,7 +131,7 @@ glcdloop:
 ;    movlw   0xFF
 ;    call    GLCD_Send_Byte_D
 ;    goto    glcdloop
-    call    write
+    call    clear_page
     goto    $
     
 delay:	decfsz	delay_count, A	; decrement until zero
