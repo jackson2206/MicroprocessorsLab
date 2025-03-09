@@ -34,7 +34,7 @@ Keypad_read:
     movf    PORTE,W,A
     addwf   combination,f,A   
 Keypad_combine:
-    movff   combination,PORTF
+    ;movff   combination,PORTF
     movlw   0xBB
     movff    combination,col
     clrf    combination,A
