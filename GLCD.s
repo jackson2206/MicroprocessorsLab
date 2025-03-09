@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  GLCD_Setup,Set_Xaddress,Set_yaddress,GLCD_Send_Byte_D,clear,GLCD_Write_Message
+global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,GLCD_Write_Message,Set_Yaddress,clear_page
 
 psect	udata_acs   ; named variables in access ram
 GLCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
@@ -9,7 +9,8 @@ GLCD_cnt_ms:	ds 1	; reserve 1 byte for ms counter
 GLCD_tmp:	ds 1	; reserve 1 byte for temporary use
 GLCD_counter:	ds 1	; reserve 1 byte for counting through nessage
 GLCD_cnt:       ds 1   ; one byte for data
-YADD:		ds 1 
+YADD:		ds 1
+pg:		ds 1    
 clear_cnt1:	ds 1
 clear_cnt2:	ds 1
 
@@ -23,17 +24,19 @@ GLCD_RW	    EQU 3
 psect	Glcd_code,class=CODE
 
 GLCD_Setup:
-	clrf	TRISD,A
-	clrf	LATD,A
-	clrf	LATB,A
+	clrf	TRISH,A
+	clrf	PORTH,A
+	clrf	TRISD,A ; set LATD as output
+	clrf	LATD,A	; empty LATD
+	clrf	LATB,A ; clear LATB
 	movlw	0xC0
-	andwf	TRISB,f,A
-	bsf	LATB,GLCD_CS1,A
-	bsf	LATB,GLCD_CS2,A
-	bsf	LATB,GLCD_RST,A
+	movwf	TRISB,A 
+	bcf	LATB,GLCD_CS1,A ; set display 1 to active
+	bcf	LATB,GLCD_CS2,A ; set display 2 to active
+	bsf	LATB,GLCD_RST,A ; set reset high 
 	nop
 	nop
-	bcf	LATB,GLCD_RW,A
+	bcf	LATB,GLCD_RW,A ; set RW bit to 0
 	bcf	LATB,GLCD_RST,A ; resets the display for new run
 	nop
 	nop
@@ -42,34 +45,17 @@ GLCD_Setup:
 	bsf	LATB,GLCD_RST,A ; reset pin high in operation
 	movlw	0
 	call	display_on_off ; turns display off
-;	movlw	0
-;	call	Set_yaddress
-;	movlw	0
-;	call	Set_Xaddress
+	call	clear_display
 	movlw	1
 	call	display_on_off ; turns display on
 	return
 	
 display_on_off:
 	addlw	0x3E
-	bcf	LATB,GLCD_CS1,A
-	bcf	LATB,GLCD_CS2,A
 	call	GLCD_Send_Byte_I
 	return
+;;~~~~~~~~~~~~~~~~~~~~ backend code
 	
-GLCD_Write_Message:	    ; Message stored at FSR2, length stored in W
-	movwf   GLCD_counter, A
-	movlw	0
-	call	Set_Xaddress
-	movlw	0
-	call	Set_yaddress
-GLCD_Loop_message:
-	movf    POSTINC2, W, A
-	call    GLCD_Send_Byte_D
-	decfsz  GLCD_counter, A
-	bra	GLCD_Loop_message
-	return
-
 GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	bcf	LATB,GLCD_E,A ;enable pin low
 	nop
@@ -79,7 +65,7 @@ GLCD_Send_Byte_I:	    ; Transmits byte stored in W to instruction reg
 	nop
 	bsf	LATB,GLCD_E,A ; enable pin high
 	movlw	1
-	call	GLCD_delay_x4us ; 3 ms delay
+	call	GLCD_delay_x4us ; 4 us delay
 	nop
 	bcf	LATB,GLCD_E,A ; enable pin low
 	nop
@@ -105,63 +91,109 @@ GLCD_Send_Byte_D: ; transmits byte in wreg to data
 	call	GLCD_delay_x4us
 	nop
 	return
-	
-Set_Xaddress: ; sets the page of the display
-    ; input position as decimal, will add 0xB8 to it to get correct address always specify after y address
-	addlw	0xB8
-	call	GLCD_Send_Byte_I
-	return
-	
-Set_yaddress: ; sets the column of the display ;input the column number between 0 ~ 127
-	movwf	YADD,A
-	movlw	63
-	cpfsgt	YADD,A
-	bra	display_1
-display2:
-	movf	YADD,W,A
-	sublw	64
-	addlw	0x40
-	bsf	LATB,GLCD_CS1,A
+
+choose_display1: ; chooses which display to write to
 	bsf	LATB,GLCD_CS2,A
-	nop
-	nop
-	nop
-	nop
-	nop
-	bcf	LATB,GLCD_CS2,A
-	call	GLCD_Send_Byte_I
-	return
-display_1:
-	movf	YADD,W,A
-	addlw	0x40
-	bsf	LATB,GLCD_CS2,A
-	bsf	LATB,GLCD_CS1,A
-	nop
-	nop
 	nop
 	nop
 	nop
 	bcf	LATB,GLCD_CS1,A
+	nop
+	nop
+	nop
+	return
+choose_display2:
+	bsf	LATB,GLCD_CS1,A
+	nop
+	nop
+	nop
+	bcf	LATB,GLCD_CS2,A
+	nop
+	nop
+	nop
+	return
+choose_both:
+	bcf	LATB,GLCD_CS1,A
+	bcf	LATB,GLCD_CS2,A
+	nop
+	nop
+	nop
+	nop
+	return
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+Set_Xaddress: ; sets the page of the display
+    ; input position as decimal, will add 0xB8 to it to get correct address always specify after y address
+	addlw	0xB8
 	call	GLCD_Send_Byte_I
 	return	
-;***  clear display	
-clear: ; clears a page of display
-	movwf	clear_cnt2,A
-	movlw	128
-	movwf	clear_cnt1,A
-check:	
-	movf	clear_cnt1,W,A
-	call	Set_yaddress
-	movf	clear_cnt2,W,A
-	call	Set_Xaddress
-	movlw	0x0
-	call	GLCD_Send_Byte_D
-	decfsz	clear_cnt1,f,A
-	bra	check
-	return	
+
 	
-    
-    
+Set_Yaddress: ; set yaddress of page
+	addlw	0x40
+	call	GLCD_Send_Byte_I
+	return
+
+
+
+	
+Set_display:	; takes y address in wreg and sets display
+	clrf	YADD,A
+	movwf	YADD,A
+	movlw	63  
+	cpfslt	YADD,A ; if f reg is greater than w  bra is skipped
+	bra	dos
+	call	choose_display1
+	movf	YADD,W,A
+	call	Set_Yaddress
+	return
+dos:
+	call	choose_display2
+	movlw	64
+	subwf	YADD,W,A ; moves value into w
+	call	Set_Yaddress
+	return
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  writing    
+	
+	
+GLCD_Write_Message:	    ; Message stored at FSR2, length stored in W
+	movwf   GLCD_counter, A
+	movlw	0
+	call	Set_Xaddress
+	movlw	0
+	call	Set_display
+GLCD_Loop_message:
+	movf    POSTINC2, W, A
+	call    GLCD_Send_Byte_D
+	decfsz  GLCD_counter, A
+	bra	GLCD_Loop_message
+	return	
+Clear_display:
+	movlw	7
+	movwf	clear_cnt2,A
+	call	choose_both
+clear:	
+	movf	clear_cnt2,W,A
+	call	clear_page
+	decfsz	clear_cnt2,A
+	bra	clear
+	return
+	
+clear_page:  ; takes page i.e Xaddress and clears the entire row of 1 display
+	movwf	pg,A
+	movlw	64
+	movwf	clear_cnt1,A
+	movlw	0
+	call	Set_Yaddress
+	movf	pg,W,A
+	call	Set_Xaddress
+page_loop:
+	movlw	0
+	call	GLCD_Send_Byte_D
+	movff	clear_cnt1,PORTH
+	decfsz	clear_cnt1,A
+	bra	page_loop
+	return
+	
 	
 	
 ; ** a few delay routines below here as LCD timing can be quite critical ****
@@ -190,4 +222,5 @@ Glcdlp1:decf 	GLCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 	subwfb 	GLCD_cnt_h, F, A	; no carry when 0x00 -> 0xff
 	bc 	Glcdlp1		; carry, then loop again
 	return			; carry reset so return
+	
 end
