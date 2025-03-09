@@ -45,7 +45,7 @@ GLCD_Setup:
 	bsf	LATB,GLCD_RST,A ; reset pin high in operation
 	movlw	0
 	call	display_on_off ; turns display off
-	call	clear_display
+	call	Clear_display
 	movlw	1
 	call	display_on_off ; turns display on
 	return
