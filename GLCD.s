@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,GLCD_Write_Message,Set_Yaddress,clear_page
+global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,GLCD_Write_Message,Set_Yaddress,clear_page,Set_display,Clear_display
 
 psect	udata_acs   ; named variables in access ram
 GLCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
@@ -24,8 +24,6 @@ GLCD_RW	    EQU 3
 psect	Glcd_code,class=CODE
 
 GLCD_Setup:
-	clrf	TRISH,A
-	clrf	PORTH,A
 	clrf	TRISD,A ; set LATD as output
 	clrf	LATD,A	; empty LATD
 	clrf	LATB,A ; clear LATB
@@ -139,7 +137,7 @@ Set_Yaddress: ; set yaddress of page
 Set_display:	; takes y address in wreg and sets display
 	clrf	YADD,A
 	movwf	YADD,A
-	movlw	63  
+	movlw	64 
 	cpfslt	YADD,A ; if f reg is greater than w  bra is skipped
 	bra	dos
 	call	choose_display1
@@ -168,7 +166,7 @@ GLCD_Loop_message:
 	bra	GLCD_Loop_message
 	return	
 Clear_display:
-	movlw	7
+	movlw	8
 	movwf	clear_cnt2,A
 	call	choose_both
 clear:	
@@ -189,7 +187,6 @@ clear_page:  ; takes page i.e Xaddress and clears the entire row of 1 display
 page_loop:
 	movlw	0
 	call	GLCD_Send_Byte_D
-	movff	clear_cnt1,PORTH
 	decfsz	clear_cnt1,A
 	bra	page_loop
 	return

@@ -4,31 +4,32 @@ extrn	GLCD_Setup,GLCD_Write_Message
 psect   udata_acs    
 counter: ds 1    
 psect	udata_bank ; reserve data anywhere in RAM (here at 0x400)
-charS:	ds 0x40
-charP:	ds 0x40
-charA:	ds 0x40
-charC:	ds 0x40
-charE:	ds 0x40
-charI:	ds 0x40
-charN:	ds 0x40
-charV:	ds 0x40
-charD:	ds 0x40
-charR:	ds 0x40
-charG:	ds 0x40
-charM:	ds 0x40
-charO:	ds 0x40
-num0:	ds 0x40
-num1:	ds 0x40
-num2:	ds 0x40
-num3:	ds 0x40
-num4:	ds 0x40
-num5:	ds 0x40
-num6:	ds 0x40
-num7:	ds 0x40
-num8:	ds 0x40
-num9:	ds 0x40 
-myenemy: ds 0x40
-myplayer: ds 0x40    
+faulty:	    ds 0x40    
+charP:	    ds 0x40
+charA:	    ds 0x40
+charC:	    ds 0x40
+charE:	    ds 0x40
+charI:	    ds 0x40
+charN:	    ds 0x40
+charV:	    ds 0x40
+charD:	    ds 0x40
+charR:	    ds 0x40
+charG:	    ds 0x40
+charM:	    ds 0x40
+charO:	    ds 0x40
+num0:	    ds 0x40
+num1:	    ds 0x40
+num2:	    ds 0x40
+num3:	    ds 0x40
+num4:	    ds 0x40
+num5:	    ds 0x40
+num6:	    ds 0x40
+num7:	    ds 0x40
+num8:	    ds 0x40
+num9:	    ds 0x40 
+myenemy:    ds 0x40
+myplayer:   ds 0x40
+charS:	    ds 0x40 
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
 S_list:
@@ -87,15 +88,19 @@ num0_list:
 	db	0x0,0x0,0x3E,0x51,0x49,0x45,0x3E,0x0
 	num0_	EQU 8
 	align	2
+Character:
+	db	0x0,0x10,0xD8,0x6C,0x6C,0xD8,0x10,0x0
+	align	2
+	
 	
 psect	char_code,class=CODE	
 write:
-	lfsr	0, charP	; Load FSR0 with address in RAM	
-	movlw	low highword(P_list)	; address of data in PM
+	lfsr	0, myplayer	; Load FSR0 with address in RAM
+	movlw	low highword(Character)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
-	movlw	high(P_list)	; address of data in PM
+	movlw	high(Character)	; address of data in PM
 	movwf	TBLPTRH, A		; load high byte to TBLPTRH
-	movlw	low(P_list)	; address of data in PM
+	movlw	low(Character)	; address of data in PM
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	S_	; bytes to read
 	movwf 	counter, A		; our counter register
@@ -107,7 +112,7 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 
 	movlw	S_	; output message to LCD
 				; don't send the final carriage return to LCD
-	lfsr	2, charP
+	lfsr	2, myplayer
 	call	GLCD_Write_Message
 	clrf	counter,A
 	return

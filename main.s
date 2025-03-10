@@ -2,7 +2,7 @@
 extrn   Keypad_Setup, Keypad_read
 extrn	UART_Setup, UART_Transmit_Message  ; external uart subroutines
 ;extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
-extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page
+extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page,Set_display,Clear_display
  ; external LCD subroutines
 extrn	write
 	
@@ -119,19 +119,21 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 	
 GLCD:
-;    movlw   0
-;    call    clear
-;    movlw   0
-;    call    Set_yaddress
-;    movlw   0
-;    call    Set_Xaddress
-glcdloop:
-;    movlw   0xFF
-;    call    GLCD_Send_Byte_D
-;    movlw   0xFF
-;    call    GLCD_Send_Byte_D
+    
+    ;movlw   0
+    ;call    Set_display
+    ;movlw   0
+    ;call    Set_Xaddress
+;glcdloop:
+   ; movlw   0xFF
+    ;call    GLCD_Send_Byte_D
+    ;movlw   0xFF
+    ;call    GLCD_Send_Byte_D
+
 ;    goto    glcdloop
-    call    clear_page
+    ;call    write
+    call    Clear_display
+    call    write
     goto    $
     
 delay:	decfsz	delay_count, A	; decrement until zero

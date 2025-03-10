@@ -18,8 +18,8 @@ Keypad_Setup:
     bsf     REPU; bit that allows use of pull up resistors
     movlb   0x0
     clrf    LATE,A
-    clrf    PORTF,A
-    clrf    TRISF,A
+    clrf    PORTH,A
+    clrf    TRISH,A
     return
 
 Keypad_read:
@@ -32,7 +32,8 @@ Keypad_read:
     movwf   TRISE,A
     call    delay
     movf    PORTE,W,A
-    addwf   combination,f,A   
+    addwf   combination,f,A  
+    movff   combination,PORTH
 Keypad_combine:
     ;movff   combination,PORTF
     movlw   0xBB
