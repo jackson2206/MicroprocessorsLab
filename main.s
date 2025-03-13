@@ -1,9 +1,6 @@
 #include <xc.inc>
 extrn   Keypad_Setup, Keypad_Move_Char
-extrn	UART_Setup, UART_Transmit_Message  ; external uart subroutines
-;extrn	LCD_Setup, LCD_Write_Message, LCD_Write_Hex,LCD_Send_Byte_D,LCD_Clear,LCD_Shift_down,LCD_Shift_up,LCD_up_down
 extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page,Set_display,Clear_display,GLCD_delay_ms
- ; external LCD subroutines
 extrn	write,write_title,Keypad_Start
 	
 psect	udata_acs   ; reserve data space in access ram

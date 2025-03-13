@@ -50,7 +50,7 @@ GLCD_Setup:
 	call	Clear_display
 	return
 	
-display_on_off:
+display_on_off:  ; if 1 in wreg display on if 0 display off
 	addlw	0x3E
 	call	GLCD_Send_Byte_I
 	return
@@ -102,7 +102,7 @@ choose_display1: ; chooses which display to write to
 	nop
 	nop
 	return
-choose_display2:
+choose_display2: ; control ship 2
 	bsf	LATB,GLCD_CS1,A
 	nop
 	nop
@@ -112,7 +112,7 @@ choose_display2:
 	nop
 	nop
 	return
-choose_both:
+choose_both: ; give command to both control chips
 	bcf	LATB,GLCD_CS1,A
 	bcf	LATB,GLCD_CS2,A
 	nop
@@ -154,7 +154,7 @@ dos:
 	return
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  writing    
 	
-GLCD_Write_Message:
+GLCD_Write_Message: ; writes the titlescreen
 	movwf   GLCD_counter, A
 	movlw	2
 	movwf	pg,A ; xaddress
