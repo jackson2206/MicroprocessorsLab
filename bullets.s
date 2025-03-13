@@ -1,14 +1,23 @@
 #include <xc.inc>
-psect	udata_bank5
-bullets:    ds	0x40
-psect	data
-bullet_mp:
-	db	0x00,0x00,0x00,0x0F,0x0F,0x00,0x00,0x00
-	align	2
-	bull	EQU 8
+psect	udata_acs
+count:	    ds	1
+temp:	    ds	1    
+psect	udata_bank4
+bulletsy:   ds	128
+bulletsx:   ds	128    
 psect	bullets_code,class=Code
 
-gen_bullet:
-	    
-
+bullet_Setup:
+    movlw   0
+    movwf   count,Aw
+    lfsr    0,bulletsy ; intialises bullet address
+    lfsr    2,bulletsx
+    return
+gen_bullet:  ; takes yadd of player in WREG
+    movwf   POSTINC0,A
+    incf    count,f,A
+    lfsr    1,bulletsy
+    movf    count,W,A
+    return
+end
 

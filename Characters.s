@@ -7,7 +7,7 @@ psect	udata_bank4 ; reserve data anywhere in RAM
 ;faulty:	    ds 0x40    
 title_screen:
 	    ds 256
-psect	udat_bank5	    
+psect	udata_bank5	    
 myplayer:   ds 0x40
 charS:	    ds 0x40 
 psect	data    
