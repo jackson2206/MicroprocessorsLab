@@ -314,4 +314,5 @@ n2dloop:
     return
 GLCD_Write_bullet: ; Takes YaDD to initialise
     
+    
 end
