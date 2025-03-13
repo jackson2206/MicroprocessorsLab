@@ -5,11 +5,11 @@ temp:	    ds	1
 psect	udata_bank4
 bulletsy:   ds	128
 bulletsx:   ds	128    
-psect	bullets_code,class=Code
+psect	bullets_code, class=CODE
 
 bullet_Setup:
     movlw   0
-    movwf   count,Aw
+    movwf   count,A
     lfsr    0,bulletsy ; intialises bullet address
     lfsr    2,bulletsx
     return
@@ -23,6 +23,6 @@ gen_bullet:  ; takes yadd of player in WREG
     return
 move_bullets:; wreg goes to counter
     movwf   temp,A
-    
+    return
 end
 
