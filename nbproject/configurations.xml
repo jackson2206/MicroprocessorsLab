@@ -25,6 +25,7 @@
       <itemPath>GLCD.s</itemPath>
       <itemPath>main.s</itemPath>
       <itemPath>Characters.s</itemPath>
+      <itemPath>bullets.s</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>

@@ -1,7 +1,8 @@
 #include <xc.inc>
 
-global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,GLCD_Write_Message,Set_Yaddress,clear_page,Set_display,Clear_display
-
+global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
+global	GLCD_Write_char,GLCD_Write_Message
+extrn	Keypad_Setup,Keypad_Move_Char
 psect	udata_acs   ; named variables in access ram
 GLCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
 GLCD_cnt_h:	ds 1	; reserve 1 byte for variable LCD_cnt_h
@@ -12,7 +13,7 @@ GLCD_cnt:       ds 1   ; one byte for data
 YADD:		ds 1
 pg:		ds 1    
 clear_cnt1:	ds 1
-clear_cnt2:	ds 1
+clear_cnt2:	ds 1   
 
 GLCD_CS1    EQU 0
 GLCD_CS2    EQU 1
@@ -43,9 +44,10 @@ GLCD_Setup:
 	bsf	LATB,GLCD_RST,A ; reset pin high in operation
 	movlw	0
 	call	display_on_off ; turns display off
-	call	Clear_display
 	movlw	1
 	call	display_on_off ; turns display on
+	call	Keypad_Setup
+	call	Clear_display
 	return
 	
 display_on_off:
@@ -152,21 +154,53 @@ dos:
 	return
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  writing    
 	
-	
-GLCD_Write_Message:	    ; Message stored at FSR2, length stored in W
+GLCD_Write_Message:
 	movwf   GLCD_counter, A
+	movlw	2
+	movwf	pg,A ; xaddress
 	movlw	0
-	call	Set_Xaddress
-	movlw	0
+	movwf	YADD,A
+Big_Loop:
+	movf	YADD,W,A
 	call	Set_display
+	movf	pg,W,A
+	call	Set_Xaddress
+	movf	POSTINC2,W,A
+	call	GLCD_Send_Byte_D
+	movlw	1
+	addwf	YADD,F,A
+	movlw	128
+	cpfseq	YADD,A
+	bra	Big_Loop
+	movlw	0
+	movwf	YADD,A
+	movlw	1
+	addwf	pg,f,A
+	movlw	4
+	cpfseq	pg,A
+	bra	Big_Loop
+	return
+	
+GLCD_Write_char:	    ; Message stored at FSR2, length stored in W
+	movwf   GLCD_counter, A
+	call	Keypad_Move_Char
+	movwf	YADD,A
+	call	Clear_display
+	movlw	7
+	call	Set_Xaddress
+	movf	YADD,W,A
+	call	Set_display	
 GLCD_Loop_message:
 	movf    POSTINC2, W, A
 	call    GLCD_Send_Byte_D
 	decfsz  GLCD_counter, A
 	bra	GLCD_Loop_message
-	return	
+	return
+	
 Clear_display:
-	movlw	8
+	movlw	0
+	call	clear_page
+	movlw	7
 	movwf	clear_cnt2,A
 	call	choose_both
 clear:	
