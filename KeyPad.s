@@ -37,7 +37,8 @@ Keypad_read:
     movf    PORTE,W,A
     addwf   combination,f,A
     movff   combination,PORTH
-    movff   combination,col
+Keypad_combine:
+    movff    combination,col
     clrf    combination,A
     return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,9 +92,8 @@ ret_1:
     movlw   1
     return
 ret_0:
-    movlw   0x0
-    return
-    
+     movlw  0
+     return
 Keypad_Start: ; press 8 to start
     call    Keypad_read
     movlw   01111011B

@@ -339,7 +339,5 @@ loop_bullet: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
 	
 	decfsz	GLCD_counter, A		; count down to zero
 	bra	loop_bullet		; keep going until finished
-	return
-    
-    
+	return    
 end
