@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
-global	GLCD_Write_player,GLCD_Write_Title
+global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both
 extrn	Keypad_Setup,Keypad_Move_Char
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
@@ -10,7 +10,7 @@ num0_list:
 	num0_	EQU 8
 	align	2
 Character:
-	db	0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF
+	db	0xF0, 0xF8, 0xF8, 0xFE, 0xFE, 0xF8, 0xF8, 0xF0
 	S_	EQU 8
 	align	2
 title_screen_list:
@@ -42,7 +42,11 @@ start_list:
 bullet_mp:
 	db	0x00,0x00,0x00,0x0F,0x0F,0x00,0x00,0x00
 	align	2
-	bull	EQU 8	
+	bull	EQU 8
+enemy:
+	db	0x18, 0x7D, 0xA6, 0x3C, 0x3C, 0xA6, 0x7D, 0x18
+	en	EQU 8
+	align	2
 	
 psect	udata_acs   ; named variables in access ram
 GLCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
@@ -154,9 +158,13 @@ choose_display2: ; control ship 2
 	nop
 	return
 choose_both: ; give command to both control chips
+	bsf	LATB,GLCD_CS1,A
+	bsf	LATB,GLCD_CS2,A
+	nop
+	nop
+	nop
 	bcf	LATB,GLCD_CS1,A
 	bcf	LATB,GLCD_CS2,A
-	nop
 	nop
 	nop
 	nop
@@ -210,13 +218,13 @@ clear:
 	
 clear_page:  ; takes page i.e Xaddress and clears the entire row of 1 display
 	movwf	pg,A
-	movlw	64
+	movlw	65
 	movwf	clear_cnt1,A
 	movlw	0
 	call	Set_Yaddress
-	movf	pg,W,A
-	call	Set_Xaddress
 page_loop:
+    	movf	pg,W,A
+	call	Set_Xaddress
 	movlw	0
 	call	GLCD_Send_Byte_D
 	decfsz	clear_cnt1,A
@@ -276,6 +284,7 @@ loop_char: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	
 	decfsz	GLCD_counter, A		; count down to zero
 	bra	loop_char		; keep going until finished
+	movf	YADD,W,A
 	return
 GLCD_Write_Title:
 Gen:
@@ -287,7 +296,7 @@ Gen:
     movwf   TBLPTRL,A
     movlw   Sp
     movwf   GLCD_counter,A
-    movlw   0
+    movlw   2
     movwf   pg,A
     movlw   0
     movwf   YADD,A
@@ -308,11 +317,29 @@ n2dloop:
     cpfseq  YADD,A
     bra	    looping
     INCF    pg,f,A
+    MOVLW   0
+    MOVWF   YADD,A
     movlw   8
     cpfseq  pg,A
     bra	    looping
     return
-GLCD_Write_bullet: ; Takes YaDD to initialise
+GLCD_Write_bullet:
+    
+	movlw	low highword(bullet_mp)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(bullet_mp)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(bullet_mp)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	bull	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+loop_bullet: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT,W,A ; move data from TABLAT to WREG
+	call	GLCD_Send_Byte_D
+	
+	decfsz	GLCD_counter, A		; count down to zero
+	bra	loop_bullet		; keep going until finished
+	return
     
     
 end

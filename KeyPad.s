@@ -37,8 +37,7 @@ Keypad_read:
     movf    PORTE,W,A
     addwf   combination,f,A
     movff   combination,PORTH
-Keypad_combine:
-    movff    combination,col
+    movff   combination,col
     clrf    combination,A
     return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -85,15 +84,16 @@ Keypad_Shoot_Key: ; will return 1 if button presses otherwise zero
     call    Keypad_read
 check_shoot:
     ; choose button to shoot
-    movlw   01111111B ; temp
+    movlw   10110111B ; temp
     cpfseq  col,A
     bra	    ret_0
 ret_1:
     movlw   1
     return
 ret_0:
-     movlw  0
-     return
+    movlw   0x0
+    return
+    
 Keypad_Start: ; press 8 to start
     call    Keypad_read
     movlw   01111011B
