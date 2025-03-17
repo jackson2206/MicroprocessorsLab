@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
-global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both
+global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy
 extrn	Keypad_Setup,Keypad_Move_Char
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
@@ -339,5 +339,21 @@ loop_bullet: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
 	
 	decfsz	GLCD_counter, A		; count down to zero
 	bra	loop_bullet		; keep going until finished
-	return    
+	return   
+GLCD_Write_Enemy:
+    	movlw	low highword(enemy)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(enemy)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(enemy)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	en	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+loop_en: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT,W,A ; move data from TABLAT to WREG
+	call	GLCD_Send_Byte_D
+	
+	decfsz	GLCD_counter, A		; count down to zero
+	bra	loop_en		; keep going until finished
+	return  
 end

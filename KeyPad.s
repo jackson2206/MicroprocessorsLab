@@ -8,8 +8,6 @@ col:            ds    1
 combination:    ds    1
 playeryadd:	ds    1 
 b_:		ds    1    
-psect	udata_bank5 ; reserve data anywhere in RAM (here at 0x400)
-bullet:    ds 0x80 ; reserve 128 bytes for message data
     
  
 psect	Keypad_code,class=CODE
