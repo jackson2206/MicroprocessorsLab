@@ -13,7 +13,7 @@ b_:		ds    1
 psect	Keypad_code,class=CODE
       
 Keypad_Setup:
-    movlb   b_
+    movlb   15
     bsf     REPU; bit that allows use of pull up resistors
     movlb   0x0
     clrf    LATE,A
