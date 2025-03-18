@@ -7,7 +7,7 @@ temp:	    ds	1
 temp2:	    ds	1    
 bulletsy:   ds	1
 bulletsx:   ds	1  
-psect udata
+;psect	 udata
 rand_num:    ds	1
 enemies_X:  ds	1
 enemies_Y:  ds	1
@@ -16,6 +16,11 @@ enemy_count:
 score:	    ds	2
 movement_inc:
 	    ds	1
+	    
+psect	udata_bank4	
+enemX:	    ds	6
+enemY:	    ds	6
+enemINC:    ds	6    
 psect	bullets_and_enemies_code, class=CODE    
 bullet_Setup:
     movlw   0
@@ -26,6 +31,12 @@ bullet_Setup:
     movwf   score,A
     movwf   enemy_count,A
     movwf   movement_inc,A
+;    clrf    enemX,A
+;    clrf    enemY,A
+;    clrf    enemINC,A
+    lfsr    0,enemX
+    lfsr    1,enemY
+    lfsr    2,enemINC
     return
 random_gen:
     movf    rand_num,W,A
@@ -65,53 +76,107 @@ move_all_bullets:; wreg goes to counter, returns 0 if no bullets
     cpfsgt  bulletsx,A
     return
     decf    count,A
-    return 
-    
+    return
 enemies_gen:
+make_starting_enemy:
     movlw   0
     cpfseq  enemy_count,A
     return
     movlw   0
-    movwf   enemies_X,A
+    movwf   POSTINC0,A
     call    random_gen
-    movwf   enemies_Y,A
-    incf    enemy_count,F,A
-    return
-game_over_check: ; returns 1 if game_over
-    movlw   7
-    cpfseq  enemies_X,A
-    retlw   0
-    retlw   1
-move_enemies:
-    movlw   10
-    cpfseq  movement_inc,A
-    bra	    increments    
-    incf    enemies_X,f,A
-    movf    enemies_Y,W,A
-    call    Set_display
-    movf    enemies_X,W,A
-    call    Set_Xaddress
+    movwf   POSTINC1,A
     movlw   0
-    movwf   movement_inc,A
+    movwf   POSTINC2,A
+    incf    enemy_count,f,A
     return
-increments:
-    incf    movement_inc,f,A
-    movf    enemies_Y,W,A
-    call    Set_display
-    movf    enemies_X,W,A
+add_enemy:
+    movlw   3
+    cpfsgt  score,A
+    return
+    movlw   6
+    cpfslt  enemy_count,A
+    return
+    movlw   0
+    movwf   POSTINC0,A
+    call    random_gen
+    movwf   POSTINC1,A
+    movlw   0
+    movwf   POSTINC2,A
+    incf    enemy_count,f,A
+    return
+    
+    
+    
+move_enemies:
+    lfsr    1,enemX
+    lfsr    2,enemY
+    lfsr    0,enemINC
+    movff   enemy_count,temp2
+check_increment:
+    movlw   10
+    cpfseq  INDF0,A
+    bra	    increment
+    movlw   0
+    movwf   POSTINC0,A
+    movlw   1
+    addwf   POSTINC1,f,A
+    movf    POSTINC2,W,A
+    decfsz  temp2,f,A
+    bra	    check_increment
+    return
+increment:
+    movlw   1
+    addwf   POSTINC0,f,A
+    movf    POSTINC1,W,A
     call    Set_Xaddress
+    movf    POSTINC2,W,A
+    call    Set_display
     call    GLCD_Write_Enemy
+    decfsz  temp2,f,A
+    bra	    check_increment
     return
+    
+    
+game_over_check:
+    lfsr    1,enemX
+    movff   enemy_count,temp2
+check:
+    movlw   7
+    cpfseq  POSTINC1,A
+    bra	    checker
+    retlw   1
+checker:
+    decfsz  temp2,f,A
+    bra	    check
+    retlw   0
 collisions:
-    movf    enemies_X,W,A
-    cpfseq  bulletsx,A
+    lfsr    0,enemX
+    lfsr    1,enemY
+    lfsr    2,enemINC
+    movff   enemy_count,temp2
+collider:
+    movf    bulletsx,W,A
+    cpfseq  INDF0,A
+    bra	    check_rst
+    movf    bulletsy,W,A
+    cpfseq  INDF1,A ; if true branch skipped
+    bra	    check_rst
+    movlw   0
+    movwf   POSTINC0,A
+    movwf   POSTINC2,A
+    call    random_gen
+    movwf   POSTINC1,A
+    incf    score,f,A
+    decfsz  temp2,f,A
+    bra	    collider
     return
-    movf    enemies_Y,W,A
-    cpfseq  bulletsy,A
-    return
-    decf    enemy_count,F,A
-    decf    count,F,A
-    incf    score,F,A
+check_rst:
+    movlw   POSTINC0
+    movlw   POSTINC1
+    movlw   POSTINC2
+    decfsz  temp2,f,A
+    bra	    collider
     return
 end
 
