@@ -6,8 +6,7 @@ count:	    ds	1
 temp:	    ds	1
 temp2:	    ds	1    
 bulletsy:   ds	1
-bulletsx:   ds	1  
-psect udata
+bulletsx:   ds	1
 rand_num:    ds	1
 enemies_X:  ds	1
 enemies_Y:  ds	1
