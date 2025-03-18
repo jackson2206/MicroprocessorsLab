@@ -15,7 +15,7 @@ enemy_count:
 	    ds	1
 score:	    ds	2
 movement_inc:
-	    ds	1
+	    ds	1	    
 psect	bullets_and_enemies_code, class=CODE    
 bullet_Setup:
     movlw   0
