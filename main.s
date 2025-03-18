@@ -25,11 +25,11 @@ GLCD:
     call    GLCD_Write_Title
     call    Keypad_Start
 character_move:
+    call    enemies_gen
     call    GLCD_Write_player
     movwf   counter_2,A
     call    Keypad_Shoot_Key
     movwf   counter,A
-    call    enemies_gen
     movlw   1
     cpfseq  counter,A
     bra	    generating_bullets
@@ -38,12 +38,12 @@ character_move:
 generating_bullets:
     call    move_enemies
     call    move_all_bullets
-    call    collisions
     call    game_over_check
     movwf   counter_2,A
     movlw   0
     cpfseq  counter_2,A
     bra	    GLCD
+    call    collisions
     movlw   100
     call    GLCD_delay_ms
     goto    character_move
