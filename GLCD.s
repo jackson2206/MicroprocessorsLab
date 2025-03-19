@@ -7,8 +7,38 @@ psect	data
 	; ******* myTable, data in programme memory, and its length *****
 num0_list:
 	db	0x0,0x0,0x3E,0x51,0x49,0x45,0x3E,0x0
-	num0_	EQU 8
+	num0_	EQU 0
+	num	EQU 8
 	align	2
+num1_list:
+	db	0x00, 0x00, 0x84, 0x80, 0xFE, 0xFE, 0x80, 0x80
+	num1_	EQU 1
+	align	2
+num2_list:
+	db	0x00, 0x84, 0xC2, 0xA2, 0x92, 0x9E, 0xCC, 0x00
+	num2_	EQU 2
+num3_list:
+	db	0x00, 0x00, 0x21, 0x41, 0x45, 0x4B, 0x31, 0x00
+	align	2
+num4_list:
+	db	0x00, 0x00, 0x18, 0x14, 0x12, 0x7F, 0x10, 0x00
+	align	2
+num5_list:
+	db	0x00, 0x00, 0x27, 0x45, 0x45, 0x45, 0x39, 0x00
+	align	2
+num6_list:
+	db	0x00, 0x00, 0x3C, 0x4A, 0x49, 0x49, 0x30, 0x00
+	align	2
+num7_list:
+	db	0x00, 0x00, 0x01, 0x01, 0x71, 0x0D, 0x03, 0x00
+	align	2
+num8_list:
+	db	0x00, 0x00, 0x36, 0x49, 0x49, 0x49, 0x36, 0x00
+	align	2
+num9_list:
+	db	0x00, 0x00, 0x06, 0x49, 0x49, 0x29, 0x1E, 0x00
+	align	2
+	
 Character:
 	db	0xF0, 0xF8, 0xF8, 0xFE, 0xFE, 0xF8, 0xF8, 0xF0
 	S_	EQU 8
@@ -45,8 +75,8 @@ bullet_mp:
 	bull	EQU 8
 enemy:
 	db	0x18, 0x7D, 0xA6, 0x3C, 0x3C, 0xA6, 0x7D, 0x18
-	en	EQU 8
 	align	2
+	en	EQU 8
 	
 psect	udata_acs   ; named variables in access ram
 GLCD_cnt_l:	ds 1	; reserve 1 byte for variable LCD_cnt_l
@@ -339,7 +369,12 @@ loop_bullet: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
 	
 	decfsz	GLCD_counter, A		; count down to zero
 	bra	loop_bullet		; keep going until finished
-	return   
+	return  
+	
+	
+	
+	
+	
 GLCD_Write_Enemy:
     	movlw	low highword(enemy)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
@@ -349,11 +384,12 @@ GLCD_Write_Enemy:
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	en	; bytes to read
 	movwf 	GLCD_counter, A		; our counter register
-loop_en: 	tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
+loop_enemy:
+        tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
 	movf	TABLAT,W,A ; move data from TABLAT to WREG
 	call	GLCD_Send_Byte_D
 	
 	decfsz	GLCD_counter, A		; count down to zero
-	bra	loop_en		; keep going until finished
+	bra	loop_enemy	; keep going until finished
 	return  
 end
