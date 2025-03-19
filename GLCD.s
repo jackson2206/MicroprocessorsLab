@@ -2,6 +2,7 @@
 
 global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
 global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy,GLCD_delay_x4us
+global	Write_num0,Write_num1,Write_num2,Write_num3,Write_num4,Write_num5,Write_num6,Write_num7,Write_num8,Write_num9  	
 extrn	Keypad_Setup,Keypad_Move_Char
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
@@ -391,5 +392,7 @@ loop_enemy:
 	
 	decfsz	GLCD_counter, A		; count down to zero
 	bra	loop_enemy	; keep going until finished
-	return  
+	return
+Write_num0:
+    
 end

@@ -1,5 +1,7 @@
 #include <xc.inc>
- global	multi_setup,
+global	multi_setup
+extrn	Set_Xaddress,Set_display,Write_num0,Write_num1,Write_num2,Write_num3,Write_num4
+extrn	Write_num5,Write_num6,Write_num7,Write_num8,Write_num9      
 psect	udata_acs
 ARG1H:	ds  1
 ARG1L:	ds  1
@@ -67,7 +69,7 @@ scoreconverter:
     ; converts to decimal
     movwf   score_check,A
     movff   high(score_check),ARG1H
-    movff   low(score_check),ARG2H
+    movff   low(score_check),ARG1L
     call    x16bit
     movff   RES3,part1
     call    x24bit
