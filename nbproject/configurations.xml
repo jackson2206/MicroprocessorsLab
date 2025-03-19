@@ -22,6 +22,7 @@
       <itemPath>GLCD.s</itemPath>
       <itemPath>main.s</itemPath>
       <itemPath>bullets_and_enemies.s</itemPath>
+      <itemPath>multiplication.s</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -37,11 +38,11 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>pk4hybrid</platformTool>
         <languageToolchain>pic-as</languageToolchain>
-        <languageToolchainVersion>3.0</languageToolchainVersion>
+        <languageToolchainVersion>2.45</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC18F-K_DFP" vendor="Microchip" version="1.8.249"/>
+        <pack name="PIC18F-K_DFP" vendor="Microchip" version="1.13.292"/>
       </packs>
       <ScriptingSettings>
       </ScriptingSettings>

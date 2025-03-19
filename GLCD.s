@@ -1,7 +1,7 @@
 #include <xc.inc>
 
 global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
-global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy
+global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy,GLCD_delay_x4us
 extrn	Keypad_Setup,Keypad_Move_Char
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
@@ -291,14 +291,14 @@ Glcdlp1:decf 	GLCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 	return			; carry reset so return
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
 	
-GLCD_Write_player:	 
+GLCD_Write_player:
+    	call	Clear_display
 	call	Keypad_Move_Char
 	movwf	YADD,A
-	call	Clear_display
-	movlw	7
-	call	Set_Xaddress
 	movf	YADD,W,A
 	call	Set_display
+	movlw	7
+	call	Set_Xaddress
 write:	
 	movlw	low highword(Character)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU

@@ -34,9 +34,9 @@ Keypad_read:
     call    delay
     movf    PORTE,W,A
     addwf   combination,f,A
-    movff   combination,PORTH
+    ;movff   combination,PORTH
 Keypad_combine:
-    movff    combination,col
+    movff   combination,col
     clrf    combination,A
     return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
