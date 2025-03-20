@@ -1,6 +1,6 @@
 #include <xc.inc>
-global	bullet_Setup,gen_bullet,move_all_bullets,count,enemies_gen,move_enemies,game_over_check,collisions,random_gen
-extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us
+global	bullet_Setup,gen_bullet,move_all_bullets,count,enemies_gen,move_enemies,game_over_check,collisions,random_gen,score
+extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us,score_H,score_L,scoreconverter,Writing_score
 psect	udata_acs 	
 count:	    ds	1
 temp:	    ds	1
@@ -12,12 +12,12 @@ rand_num:   ds	1
 enemy_count:ds	1
 score:	    ds	2
 com_score:  ds	2 
-enem_speed: DS	1    
-	    
+enem_speed: ds	1    
+max_enem:   ds	1	    
 psect	udata_bank4	
-enemX:	    ds	6
-enemY:	    ds	6
-enemINC:    ds	6    
+enemX:	    ds	7
+enemY:	    ds	7
+enemINC:    ds	7    
 psect	bullets_and_enemies_code, class=CODE    
 bullet_Setup:
     movlw   0
@@ -37,6 +37,8 @@ bullet_Setup:
     movff   score,com_score
     MOVLW   15
     movwf   enem_speed,A
+    movlw   7
+    movwf   max_enem,A
     return
 random_gen:
     movf    rand_num,W,A
@@ -44,7 +46,7 @@ random_gen:
     movf    PRODL,W,A
     addlw   17
     movwf   rand_num,A
-    movlw   16
+    movlw   12
     cpfslt  rand_num,A
     bra	    random_gen
     movf    rand_num,W,A
@@ -113,6 +115,9 @@ score_changed:
     movff   score,com_score
     retlw   1
 extra_enemy:  ;if score condition is met adds one more enemy
+    movf    max_enem,W,A
+    cpfslt  enemy_count,A
+    return
     call    score_check ; if score does not change return out
     movwf   temp3,A
     movlw   1
@@ -122,9 +127,6 @@ extra_enemy:  ;if score condition is met adds one more enemy
     movwf   temp3,A
     movlw   1
     cpfseq  temp3,A
-    return
-    movlw   4
-    cpfslt  enemy_count,A
     return
     lfsr    1,enemX
     lfsr    2,enemY
@@ -166,6 +168,10 @@ increment_all:
     bra	    hold_time
     return
 draw:
+    movff   high(score),score_H
+    movff   low(score),score_L
+    call    scoreconverter
+    call    Writing_score
     movff   enemy_count,temp2
     lfsr    1,enemX ; point to start of the table
     lfsr    2,enemY

@@ -2,19 +2,48 @@
 extrn   Keypad_Setup, Keypad_Move_Char
 extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page,Set_display,Clear_display,GLCD_delay_ms
 extrn	GLCD_Write_player,GLCD_Write_Title,Keypad_Start,Keypad_Shoot_Key
-extrn	bullet_Setup,gen_bullet,move_all_bullets ,enemies_gen,move_enemies,GLCD_Write_Enemy,game_over_check,collisions
+extrn	bullet_Setup,gen_bullet,move_all_bullets ,enemies_gen,move_enemies,GLCD_Write_Enemy,game_over_check,collisions,game_over_score
+extrn	multi_setup,scoreconverter,Writing_score,score_H,score_L,Draw_endscreen,score,start_animation
 	
 psect	udata_acs   ; reserve data space in access ram
-counter:    ds 1    ; reserve one byte for a counter variable
-counter_2:  ds 1    
-delay_count:ds 1    ; reserve one byte for counter in the delay routine 
+counter:    ds	1    ; reserve one byte for a counter variable
+counter_2:  ds	1    
+delay_count:ds	1    ; reserve one byte for counter in the delay routine
+high_score_L: 
+	    ds  1
+high_score_H:
+	    ds	1
+Hi_scoreL   EQU	0
+Hi_scoreH   EQU	10   
 psect	code, abs	
 rst: 	org 0x0
  	goto	setup
 
 	; ******* Programme FLASH read Setup Code ***********************
-setup:	bcf	CFGS	; point to Flash program memory  
+setup:	
+	movlw	high(Hi_scoreL)
+	movwf	EEADRH,A
+	movlw	low(Hi_scoreL)
+	movwf	EEADR,A
+	bcf	EEPGD
+	bcf	CFGS
+	bsf	RD
+	nop
+	movff	EEDATA,high_score_L
+	nop
+	movlw	high(Hi_scoreH)
+	movwf	EEADRH,A
+	movlw	low(Hi_scoreH)
+	movwf	EEADR,A
+	bcf	EEPGD
+	bcf	CFGS
+	bsf	RD
+	nop
+	movff	EEDATA,high_score_H
+	nop
+	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
+	call	multi_setup
 	call	bullet_Setup
 	call	GLCD_Setup
 	call    Keypad_Setup
@@ -23,6 +52,7 @@ setup:	bcf	CFGS	; point to Flash program memory
 	
 GLCD:
     call    GLCD_Write_Title
+    ;call    start_animation
     call    Keypad_Start ; waits till button press to run
 character_move:
     call    enemies_gen
@@ -43,10 +73,113 @@ move_everything:
     movwf   counter,A
     movlw   0
     cpfseq  counter,A
-    goto    GLCD
-    movlw   100
+    goto    end_screen
+    movlw   90
     call    GLCD_delay_ms
     goto    character_move
+
+end_screen:
+    call    Clear_display
+    call    Draw_endscreen
+    movff   high(score),score_H
+    movff   low(score),score_L
+    call    scoreconverter
+;    call    Save_hi_score
+    call    game_over_score
+    goto    $
+test:
+    movlw   high(4566)
+    movwf   score_H,A
+    movlw   low(4566)
+    movwf   score_L,A
+    call    scoreconverter
+    call    Writing_score
+    call    Keypad_Start
+    goto    setup
+save_hi_score:
+    movf    high_score_L,W,A
+    cpfsgt  low(score),A
+    ;bra	    check_high
+    movf    high_score_H,W,A
+    cpfsgt  high(score),A
+    ;bra	    no_change
+    movff   high(score),high_score_H
+    movff   low(score),high_score_L
+
+write_to_eeprom:
+    movlw   0x1
+    movwf   high_score_H,A
+    movlw   0x0
+    movwf   high_score_L,A
+    
+    movlw   high(Hi_scoreL)
+    movwf   EEADRH,A
+    movlw   low(Hi_scoreL)
+    movwf   EEADR,A
+    movff   high_score_L,EEDATA
+    bcf	    EEPGD
+    bcf	    CFGS
+    bsf	    WREN
+    
+    movlw   0x55
+    movwf   EECON2,A
+    movlw   0xAA
+    movwf   EECON2,A
+    bsf	    WR
+    btfsc   WR
+    nop
+    nop
+    bcf	    WREN
+    movlw   high(Hi_scoreH)
+    movwf   EEADRH,A
+    movlw   low(Hi_scoreH)
+    movwf   EEADR,A
+    movff   high_score_H,EEDATA
+    bcf	    EEPGD
+    bcf	    CFGS
+    bsf	    WREN
+    movlw   0x55
+    movwf   EECON2,A
+    movlw   0xAA
+    movwf   EECON2,A
+    bsf	    WR
+    btfsc   WR
+    nop
+    nop
+    bcf	    WREN   
+
+read_high_score:
+	clrf	high_score_L,A
+	clrf	high_score_H,A
+    	movlw	high(Hi_scoreL)
+	movwf	EEADRH,A
+	movlw	low(Hi_scoreL)
+	movwf	EEADR,A
+	bcf	EEPGD
+	bcf	CFGS
+	bsf	RD
+	nop
+	movff	EEDATA,high_score_L
+	nop
+	movlw	high(Hi_scoreH)
+	movwf	EEADRH,A
+	movlw	low(Hi_scoreH)
+	movwf	EEADR,A
+	bcf	EEPGD
+	bcf	CFGS
+	bsf	RD
+	nop
+	movff	EEDATA,high_score_H
+	nop
+	bcf	CFGS	; point to Flash program memory  
+	bsf	EEPGD 	; access Flash program memory
+	call	Clear_display
+	movff	high_score_H,score_H
+	movff	high_score_L,score_L
+	call	scoreconverter
+	call	game_over_score
+	goto	$
+    
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
 	return

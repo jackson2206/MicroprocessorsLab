@@ -1,5 +1,5 @@
 #include <xc.inc>
-global	multi_setup
+global	multi_setup,scoreconverter,Writing_score,score_H,score_L,game_over_score
 extrn	Set_Xaddress,Set_display,Write_num0,Write_num1,Write_num2,Write_num3,Write_num4
 extrn	Write_num5,Write_num6,Write_num7,Write_num8,Write_num9      
 psect	udata_acs
@@ -15,62 +15,72 @@ RESx0:	ds  1
 RESx1:	ds  1
 RESx2:	ds  1
 RESx3:  ds  1    
-score_check:
-	ds  2
 part1:	ds  1
 part2:	ds  1
 part3:	ds  1
 part4:	ds  1
+score_H:ds  1
+score_L:ds  1    
 psect	multiplication_code, class=CODE 
 
 multi_setup:
     movlw   0x8A
-    movwf   ARG2L,A
+    movwf   ARG1L,A
     movlw   0x41
-    movwf   ARG2H,A
+    movwf   ARG1H,A
+    movlw   0
+    movwf   RES0,A
+    movwf   RES1,A
+    movwf   RES2,A
+    movwf   RES3,A
     return
 x16bit: ;   multiplies value in arg 1 and 2
-    movf    ARG1L,W,A
-    mulwf   ARG2L,A	; ARG1L*ARG2L -> 
-			;  PRODH:PRODL
-    movff   PRODH,RES1
+    movlw   0x8A
+    ;movf    ARG1L,W,A ; mul low bits
+    mulwf   ARG2L,A
+    
     movff   PRODL,RES0
-  ;  
-    movf    ARG1H,W,A
-    mulwf   ARG2H,A	; ARG1H*ARG2H -> 
-			;  PRODH:PRODL
-    ;
-    movff   PRODH,RES3
+    movff   PRODH,RES1
+    
+    movlw   0x41
+    ;movf    ARG1H,W,A
+    mulwf   ARG2H,A
+    
     movff   PRODL,RES2
-    ;
-    movf    ARG1L,W,A
-    mulwf   ARG2H,A   ; ARG1L*ARG2H -> 
-			;  PRODH:PRODL
-    ;
-    movf    PRODL,W,A ;
-    addwf   RES1,F,A  ; added to res1 *2^8 
-    movf    PRODH,W,A ; adding cross products
-    addwfc  RES2,F,A  ;
-    clrf    WREG ,A     ;
-    addwfc  RES3,F,A  ;
-    ;
-    movf    ARG1H,W ,A;
-    mulwf   ARG2L ,A  ;
-    ;
+    movff   PRODH,RES3
+    
+    movlw   0x8A
+    ;movf    ARG1L,W,A
+    mulwf   ARG2H,A
+    
     movf    PRODL,W,A
-    addwf   RES1,F,A
+    addwf   RES1,f,A
     movf    PRODH,W,A
-    addwfc  RES2,F,A
+    addwfc  RES2,f,A
     clrf    WREG,A
-    addwfc  RES3,F,A	
+    addwfc  RES3,f,A
+    
+    movlw   0x41
+    ;movf    ARG1H,W,A
+    mulwf   ARG2L,A
+    
+    movf    PRODL,W,A
+    addwf   RES1,f,A
+    movf    PRODH,W,A
+    addwfc  RES2,f,A
+    clrf    WREG,A
+    addwfc  RES3,f,A
+    
+    return
 scoreconverter:
-    ; should take in a 16 bit number in wreg 
+    ; should take in a 16 bit number in FSR0 
     ; stores answer in part1:part4 32 bit address
     ; converts to decimal
-    movwf   score_check,A
-    movff   high(score_check),ARG1H
-    movff   low(score_check),ARG1L
+    ;movwf   score_check,A
+    movff   score_H,ARG2H
+    movff   score_L,ARG2L
     call    x16bit
+    movf    RES3,W,A
     movff   RES3,part1
     call    x24bit
     movff   RESx3,part2
@@ -78,30 +88,44 @@ scoreconverter:
     movff   RESx1,RES1
     movff   RESx2,RES2
     call    x24bit
+    
     movff   RESx3,part3
     movff   RESx0,RES0
     movff   RESx1,RES1
     movff   RESx2,RES2
     call    x24bit
+    
     movff   RESx3,part4
-    movff   RESx0,RES0
-    movff   RESx1,RES1
-    movff   RESx2,RES2
+    ;movff   RESx0,RES0
+    ;movff   RESx1,RES1
+    ;movff   RESx2,RES2
     return
 
-Writing_score_during_game:
+Writing_score:
     movlw   0
     call    Set_Xaddress
-    movlw   95
+    movlw   96
     call    Set_display
     call    choose_1st_digi
     call    choose_2nd_digi
     call    choose_3rd_digi
     call    choose_4th_digi
     return
-    
-    
+game_over_score:
+    movlw   5
+    call    Set_Xaddress
+    movlw   64
+    call    Set_display
+    call    choose_1st_digi
+    call    choose_2nd_digi
+    call    choose_3rd_digi
+    call    choose_4th_digi
 x24bit:
+    movlw   0
+    movwf   RESx0,A
+    movwf   RESx1,A
+    movwf   RESx2,A
+    movwf   RESx3,A
     movlw   0x0A
     mulwf   RES0,A ; RES0*0XA -> PRODH:PRODL
     ;
@@ -113,7 +137,7 @@ x24bit:
     ;
     movf    PRODL,W,A
     addwf   RESx1,F,A
-    movf    PRODH,F,A
+    movf    PRODH,W,A
     addwfc  RESx2,F,A
     clrf    WREG,A
     addwfc  RESx3,F,A
@@ -124,7 +148,7 @@ x24bit:
     movf    PRODL,W,A
     addwf   RESx2,F,A
     movf    PRODH,W,A
-    addwfc  RESx3,F,A
+    addwfc  RESx3,F,A         
     return
     
     
@@ -241,7 +265,7 @@ num2_8:
     movlw   8
     cpfseq  part2,A
     bra	    num2_9
-    call    Write_num9
+    call    Write_num8
     return  
 num2_9:
     movlw   9
@@ -303,7 +327,7 @@ num3_8:
     movlw   8
     cpfseq  part3,A
     bra	    num3_9
-    call    Write_num9
+    call    Write_num8
     return  
 num3_9:
     movlw   9
@@ -314,61 +338,61 @@ num3_9:
 ;-------------------------------
 choose_4th_digi: 
     movlw   0
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_1
     call    Write_num0
     return
 num4_1:
     movlw   1
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_2
     call    Write_num1
     return
 num4_2:
     movlw   2
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_3
-    call    Write_num3
+    call    Write_num2
     return
 num4_3:
     movlw   3
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_4
-    call    Write_num4
+    call    Write_num3
     return
 num4_4:
     movlw   4
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_5
     call    Write_num4
     return    
 num4_5:
     movlw   5
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_6
     call    Write_num5
     return
 num4_6:
     movlw   6
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_7
     call    Write_num6
     return
 num4_7:
     movlw   7
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_8
     call    Write_num7
     return    
 num4_8:
     movlw   8
-    cpfseq  part3,A
+    cpfseq  part4,A
     bra	    num4_9
-    call    Write_num9
+    call    Write_num8
     return  
 num4_9:
     movlw   9
-    cpfseq  part3,A
+    cpfseq  part4,A
     return
     call    Write_num9
     return    

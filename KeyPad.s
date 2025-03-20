@@ -48,10 +48,10 @@ Compare_r:
     bra	    Compare_l
     movlw   8
     addwf   playeryadd,f,A
-    movlw   120
+    movlw   88
     cpfsgt  playeryadd,A
     bra	    ret
-    movlw   120
+    movlw   88
     movwf   playeryadd,A
     movf    playeryadd,W,A
     return

@@ -1,8 +1,8 @@
 #include <xc.inc>
 
 global  GLCD_Setup,Set_Xaddress,Set_display,GLCD_Send_Byte_D,Set_Yaddress,clear_page,Set_display,Clear_display,clear_page,GLCD_delay_ms
-global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy,GLCD_delay_x4us
-global	Write_num0,Write_num1,Write_num2,Write_num3,Write_num4,Write_num5,Write_num6,Write_num7,Write_num8,Write_num9  	
+global	GLCD_Write_player,GLCD_Write_Title,GLCD_Write_bullet,YADD,choose_both,GLCD_Write_Enemy,GLCD_delay_x4us,Draw_endscreen
+global	Write_num0,Write_num1,Write_num2,Write_num3,Write_num4,Write_num5,Write_num6,Write_num7,Write_num8,Write_num9,start_animation 	
 extrn	Keypad_Setup,Keypad_Move_Char
 psect	data    
 	; ******* myTable, data in programme memory, and its length *****
@@ -70,6 +70,25 @@ start_list:
 	db	0x04, 0x04, 0x7C, 0x04, 0x04, 0x04
 	St_	EQU	38
 	align	2
+Game_over:
+	db	0x00, 0x00, 0x80, 0xE0, 0x30, 0x30, 0x30, 0x20, 0x00, 0x00, 0x00, 0x80, 0x60, 0xF0, 0x80, 0x00
+	db	0x00, 0x80, 0xF0, 0xF0, 0x00, 0xC0, 0xF0, 0xE0, 0x00, 0x00, 0xF0, 0xB0, 0xB0, 0xB0, 0xB0, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x20, 0x30, 0x30, 0x30, 0x60, 0xC0, 0x00, 0xF0, 0x80, 0x00
+	db	0x80, 0xF0, 0x30, 0x00, 0xF0, 0xB0, 0xB0, 0xB0, 0xB0, 0x00, 0xF0, 0x30, 0x30, 0x20, 0xE0, 0xC0
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x0F, 0x0C, 0x09, 0x0D, 0x0D, 0x03, 0x01, 0x0C, 0x07, 0x03, 0x02, 0x03, 0x0F, 0x08
+	db	0x0C, 0x0F, 0x01, 0x03, 0x0E, 0x07, 0x00, 0x0F, 0x0C, 0x00, 0x0F, 0x09, 0x09, 0x09, 0x09, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x01, 0x07, 0x0C, 0x08, 0x08, 0x0C, 0x07, 0x01, 0x00, 0x00, 0x0F, 0x0C
+	db	0x07, 0x00, 0x00, 0x00, 0x0F, 0x09, 0x09, 0x09, 0x09, 0x00, 0x0F, 0x03, 0x03, 0x07, 0x0D, 0x0C
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	align	2
+	game_l	EQU 256
 bullet_mp:
 	db	0x00,0x00,0x00,0x0F,0x0F,0x00,0x00,0x00
 	align	2
@@ -235,8 +254,6 @@ dos:
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  writing   
 	
 Clear_display:
-	movlw	0
-	call	clear_page
 	movlw	7
 	movwf	clear_cnt2,A
 	call	choose_both
@@ -245,6 +262,8 @@ clear:
 	call	clear_page
 	decfsz	clear_cnt2,A
 	bra	clear
+	movlw	0
+	call	clear_page
 	return
 	
 clear_page:  ; takes page i.e Xaddress and clears the entire row of 1 display
@@ -394,5 +413,167 @@ loop_enemy:
 	bra	loop_enemy	; keep going until finished
 	return
 Write_num0:
+        movlw	low highword(num0_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num0_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num0_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+loop_num:
+        tblrd*+		; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT,W,A ; move data from TABLAT to WREG
+	call	GLCD_Send_Byte_D
+	
+	decfsz	GLCD_counter, A		; count down to zero
+	bra	loop_num	; keep going until finished
+	return
+Write_num1:
+        movlw	low highword(num1_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num1_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num1_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num2:
+        movlw	low highword(num2_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num2_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num2_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num3:
+        movlw	low highword(num3_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num3_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num3_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num4:
+        movlw	low highword(num4_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num4_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num4_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num5:
+        movlw	low highword(num5_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num5_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num5_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num6:
+        movlw	low highword(num6_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num6_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num6_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num7:
+        movlw	low highword(num7_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num7_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num7_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num8:
+        movlw	low highword(num8_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num8_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num8_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+Write_num9:
+        movlw	low highword(num9_list)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(num9_list)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(num9_list)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	8	; bytes to read
+	movwf 	GLCD_counter, A		; our counter register
+	bra	loop_num
+
+Draw_endscreen:
+    Ggen:
+    movlw   low highword(Game_over)
+    movwf   TBLPTRU,A
+    movlw   high(Game_over)
+    movwf   TBLPTRH,A
+    movlw   low(Game_over)
+    movwf   TBLPTRL,A
+    movlw   256
+    movwf   GLCD_counter,A
+    movlw   2
+    movwf   pg,A
+    movlw   0
+    movwf   YADD,A
+glooping:
+    movf    YADD,W,A
+    call    Set_display
+    movf    pg,W,A
+    call    Set_Xaddress
+    tblrd*+ 
+    movf    TABLAT,W,A
+    call    GLCD_Send_Byte_D
+    INCF    YADD,f,A
+    DECFSZ  GLCD_counter,A ; skips if equal to zero
+    bra	    gn2dloop
+    return
+gn2dloop:    
+    movlw   128
+    cpfseq  YADD,A
+    bra	    glooping
+    INCF    pg,f,A
+    MOVLW   0
+    MOVWF   YADD,A
+    movlw   8
+    cpfseq  pg,A
+    bra	    glooping
+    return
+
+start_animation:
+    movlw   0
+    call    Set_Xaddress
+    movlw   0
+    movwf   YADD,A
+l:    
+    movf    YADD,W,A
+    call    Set_display
+    call    GLCD_Write_Enemy
+    movlw   500
+    call    GLCD_delay_ms
+    movlw   8
+    addwf   YADD,W,A
+    movlw   128
+    cpfseq  YADD,A
+    bra	    l
     
 end
