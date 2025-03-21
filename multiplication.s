@@ -1,5 +1,5 @@
 #include <xc.inc>
-global	multi_setup,scoreconverter,Writing_score,score_H,score_L,game_over_score
+global	multi_setup,scoreconverter,Writing_score,score_H,score_L,game_over_score,frames
 extrn	Set_Xaddress,Set_display,Write_num0,Write_num1,Write_num2,Write_num3,Write_num4
 extrn	Write_num5,Write_num6,Write_num7,Write_num8,Write_num9      
 psect	udata_acs
@@ -395,5 +395,15 @@ num4_9:
     cpfseq  part4,A
     return
     call    Write_num9
-    return    
+    return
+frames:
+    movlw   1
+    call    Set_Xaddress
+    movlw   96
+    call    Set_display
+    call    choose_1st_digi
+    call    choose_2nd_digi
+    call    choose_3rd_digi
+    call    choose_4th_digi
+    return
 end

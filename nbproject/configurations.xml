@@ -23,6 +23,7 @@
       <itemPath>main.s</itemPath>
       <itemPath>bullets_and_enemies.s</itemPath>
       <itemPath>multiplication.s</itemPath>
+      <itemPath>Sound.s</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>

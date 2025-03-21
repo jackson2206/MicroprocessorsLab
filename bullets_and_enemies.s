@@ -1,6 +1,6 @@
 #include <xc.inc>
 global	bullet_Setup,gen_bullet,move_all_bullets,count,enemies_gen,move_enemies,game_over_check,collisions,random_gen,score
-extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us,score_H,score_L,scoreconverter,Writing_score
+extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us,score_H,score_L,scoreconverter,Writing_score,Sound_setup,sound_loop
 psect	udata_acs 	
 count:	    ds	1
 temp:	    ds	1
@@ -15,14 +15,14 @@ com_score:  ds	2
 enem_speed: ds	1    
 max_enem:   ds	1	    
 psect	udata_bank4	
-enemX:	    ds	7
-enemY:	    ds	7
-enemINC:    ds	7    
+enemX:	    ds	10
+enemY:	    ds	10
+enemINC:    ds	10    
 psect	bullets_and_enemies_code, class=CODE    
 bullet_Setup:
     movlw   0
     movwf   count,A
-    movlw   2
+    movlw   3
     movwf   rand_num,A
     movlw   0
     movwf   score,A
@@ -61,7 +61,7 @@ gen_bullet:  ; takes yadd of player in WREG
     cpfseq  count,A
     return
     movff   temp,bulletsy
-    movlw   6
+    movlw   7
     movwf   bulletsx,A
     incf    count,f,A
     movf    count,W,A
@@ -210,6 +210,24 @@ collisions:
 check_x:
     movf    INDF1,W,A
     cpfseq  bulletsx,A
+    bra	    check_just_above
+    movf    INDF2,W,A
+    cpfseq  bulletsy,A
+    bra	    check_just_above
+    movlw   0
+    movwf   POSTINC0,A
+    movlw   0
+    movwf   POSTINC1,A
+    call    random_gen
+    movwf   POSTINC2,A
+    decf    count,f,A ; decriment bullet
+    incf    score,f,A
+    call    sound_loop
+    return
+check_just_above:
+    movf    INDF1,W,A
+    addlw   1
+    cpfseq  bulletsx,A
     bra	    check_all
     movf    INDF2,W,A
     cpfseq  bulletsy,A
@@ -222,6 +240,7 @@ check_x:
     movwf   POSTINC2,A
     decf    count,f,A ; decriment bullet
     incf    score,f,A
+    call    sound_loop
     return
 check_all:
     movf   POSTINC0,W,A
