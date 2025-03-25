@@ -105,17 +105,17 @@ GLCD_cnt_ms:	ds 1	; reserve 1 byte for ms counter
 GLCD_tmp:	ds 1	; reserve 1 byte for temporary use
 GLCD_counter:	ds 1	; reserve 1 byte for counting through nessage
 GLCD_cnt:       ds 1   ; one byte for data
-YADD:		ds 1
-pg:		ds 1    
-clear_cnt1:	ds 1
-clear_cnt2:	ds 1   
+YADD:		ds 1 ; yaddress 0-128
+pg:		ds 1 ;   page number 0-7
+clear_cnt1:	ds 1	;   tmp counter
+clear_cnt2:	ds 1   ;   tmp counter
 
-GLCD_CS1    EQU 0
-GLCD_CS2    EQU 1
-GLCD_RS	    EQU 2
-GLCD_E	    EQU 4
-GLCD_RST    EQU 5
-GLCD_RW	    EQU 3    
+GLCD_CS1    EQU 0   ; set low to choose section 1
+GLCD_CS2    EQU 1   ; set low to choose section 2
+GLCD_RS	    EQU 2   ; set high to write instruction to chipset, low to write data
+GLCD_E	    EQU 4   ; pulse to write information to chipset
+GLCD_RST    EQU 5   ; reset LCM
+GLCD_RW	    EQU 3   ; set low to write instructions/ high to read	 
 
 psect	Glcd_code,class=CODE
 
@@ -187,7 +187,7 @@ GLCD_Send_Byte_D: ; transmits byte in wreg to data
 	nop
 	return
 
-choose_display1: ; chooses which display to write to
+choose_display1: ; chooses display 1
 	bsf	LATB,GLCD_CS2,A
 	nop
 	nop
@@ -197,7 +197,7 @@ choose_display1: ; chooses which display to write to
 	nop
 	nop
 	return
-choose_display2: ; control ship 2
+choose_display2: ; chooses display 2
 	bsf	LATB,GLCD_CS1,A
 	nop
 	nop

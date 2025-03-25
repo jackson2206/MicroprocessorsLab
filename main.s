@@ -22,11 +22,11 @@ rst: 	org 0x0
 
 	; ******* Programme FLASH read Setup Code ***********************
 setup:
-	movlw	100
-	movwf	high_score_L,A
-	movlw	0
-	movwf	high_score_H,A
-	call	write_to_eeprom
+;	movlw	100
+;	movwf	high_score_L,A
+;	movlw	0
+;	movwf	high_score_H,A
+;	call	write_to_eeprom
 start:	
 	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
