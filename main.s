@@ -22,7 +22,7 @@ rst: 	org 0x0
 
 	; ******* Programme FLASH read Setup Code ***********************
 setup:
-;	movlw	100
+;	movlw	0
 ;	movwf	high_score_L,A
 ;	movlw	0
 ;	movwf	high_score_H,A
@@ -121,6 +121,33 @@ check_high:
     movff   low(score),high_score_L
     call    write_to_eeprom
     return
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 write_to_eeprom:
     movwf   high_score_L,A
     movwf   high_score_H,A
