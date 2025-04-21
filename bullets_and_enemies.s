@@ -1,14 +1,13 @@
 #include <xc.inc>
 global	bullet_Setup,gen_bullet,move_all_bullets,count,enemies_gen,move_enemies,game_over_check,collisions,random_gen,score
-extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us,score_H,score_L,scoreconverter,Writing_score,Sound_setup,sound_loop
+extrn	Set_display,Set_Xaddress,GLCD_Write_bullet,clear_page,Clear_display,GLCD_Write_Enemy,GLCD_delay_x4us,score_H,score_L,scoreconverter,Writing_score,Sound_setup,sound_loop,rand_num
 psect	udata_acs 	
 count:	    ds	1
 temp:	    ds	1
 temp2:	    ds	1
 temp3:	    ds	1    
 bulletsy:   ds	1
-bulletsx:   ds	1
-rand_num:   ds	1    
+bulletsx:   ds	1    
 enemy_count:ds	1
 score:	    ds	2
 com_score:  ds	2 
@@ -22,8 +21,6 @@ psect	bullets_and_enemies_code, class=CODE
 bullet_Setup:
     movlw   0
     movwf   count,A
-    movlw   3
-    movwf   rand_num,A
     movlw   0
     movwf   score,A
     movlw   0

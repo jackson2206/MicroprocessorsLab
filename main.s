@@ -1,19 +1,18 @@
 #include <xc.inc>
+global	rand_num
 extrn   Keypad_Setup, Keypad_Move_Char
 extrn	GLCD_Setup,Set_Xaddress,Set_Yaddress,GLCD_Send_Byte_D,Set_display,clear_page,Set_display,Clear_display,GLCD_delay_ms
 extrn	GLCD_Write_player,GLCD_Write_Title,Keypad_Start,Keypad_Shoot_Key
 extrn	bullet_Setup,gen_bullet,move_all_bullets ,enemies_gen,move_enemies,GLCD_Write_Enemy,game_over_check,collisions,game_over_score
-extrn	multi_setup,scoreconverter,Writing_score,score_H,score_L,Draw_endscreen,score,start_animation,Sound_setup,sound_loop,frames
+extrn	multi_setup,scoreconverter,Writing_score,score_H,score_L,Draw_endscreen,score,start_animation,Sound_setup,sound_loop,frames,draw_high_score
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds	1    ; reserve one byte for a counter variable
 counter_2:  ds	1
 count1:	    ds	2    
 delay_count:ds	1    ; reserve one byte for counter in the delay routine
-high_score_L: 
-	    ds  1
-high_score_H:
-	    ds	1
+high_score: ds	2
+rand_num:   ds	1
 Hi_scoreH   EQU	1
 Hi_scoreL   EQU	0	    
 psect	code, abs	
@@ -22,11 +21,10 @@ rst: 	org 0x0
 
 	; ******* Programme FLASH read Setup Code ***********************
 setup:
-;	movlw	0
-;	movwf	high_score_L,A
-;	movlw	0
-;	movwf	high_score_H,A
-;	call	write_to_eeprom
+	movlw   3 ; defining the starting random seed so that subsequent games will have a different start
+	movwf   rand_num,A
+	movlw	0x0
+	movwf	high_score,A
 start:	
 	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
@@ -50,10 +48,10 @@ character_move:
     call    enemies_gen
     call    GLCD_Write_player
     movwf   counter_2,A
-    movff   high(count1),score_H
-    movff   low(count1),score_L
-    call    scoreconverter
-    call    frames
+;    movff   high(count1),score_H                  uncomment for frame rate
+;    movff   low(count1),score_L
+;    call    scoreconverter
+;    call    frames
     call    Keypad_Shoot_Key
     movwf   counter,A	; stores boolean 1 or 0
     movlw   1
@@ -72,7 +70,7 @@ move_everything:
     goto    end_screen
     movlw   90
     call    GLCD_delay_ms
-    incf    count1,f,A
+;    incf    count1,f,A
     goto    character_move
 
 end_screen:
@@ -83,10 +81,10 @@ end_screen:
     call    scoreconverter
     call    game_over_score
     call    save_hi_score
-;    movff   high_score_H,score_H
-;    movff   high_score_L,score_L
-;    call    scoreconverter
-;    call    frames
+    movff   high(high_score),score_H
+    movff   low(high_score),score_L
+    call    scoreconverter
+    call    draw_high_score
     call    Keypad_Start
     goto    start
 ;test:
@@ -99,130 +97,98 @@ end_screen:
 ;    call    Keypad_Start
 ;    goto    setup
 save_hi_score:
-    call    Read_High_score
-    movf    high_score_H,W,A
+    movf    high(high_score),W,A
     cpfseq  high(score),A
     bra	    check_high
-    movf    high_score_L,W,A
+    movf    low(high_score),W,A
     cpfsgt  low(score),A
-    bra	    no_change
-    movff   high(score),high_score_H
-    movff   low(score),high_score_L
-    call    write_to_eeprom
     return
-no_change:
-    call    write_to_eeprom
+    movff   score,high_score
     return
 check_high:
-    movf    high_score_H,W,A
+    movf    high(high_score),W,A
     cpfsgt  high(score),A
-    bra	    no_change
-    movff   high(score),high_score_H
-    movff   low(score),high_score_L
-    call    write_to_eeprom
+    return
+    movff   score,high_score
+    
     return
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-write_to_eeprom:
-    movwf   high_score_L,A
-    movwf   high_score_H,A
-    movlw   high(Hi_scoreL)
-    movwf   EEADRH,A
-    movlw   low(Hi_scoreL)
-    movwf   EEADR,A
-    movff   high_score_L,EEDATA
-    bcf	    EEPGD
-    bcf	    CFGS
-    bsf	    WREN
-    
-    bcf	    GIE
-    movlw   0x55
-    movwf   EECON2,A
-    movlw   0XAA
-    movwf   EECON2,A
-    bsf	    WR
-    btfsc   WR
-    bsf	    GIE
-    movlw   40
-    call    GLCD_delay_ms
-    bcf	    WREN
-    bcf	    EEIF
-    movlw   40
-    call    GLCD_delay_ms
-highl:    
-    movlw   high(Hi_scoreH)
-    movwf   EEADRH,A
-    movlw   low(Hi_scoreH)
-    movwf   EEADR,A
-    movff   high_score_H,EEDATA
-    bcf	    EEPGD
-    bcf	    CFGS
-    bsf	    WREN
-    
-    bcf	    GIE
-    movlw   0x55
-    movwf   EECON2,A
-    movlw   0XAA
-    movwf   EECON2,A
-    bsf	    WR
-    btfsc   WR
-    bsf	    GIE
-    movlw   40
-    call    GLCD_delay_ms
-    bcf	    WREN
-    bcf	    EEIF
-    movlw   40
-    call    GLCD_delay_ms
-    return
-    
-Read_High_score:
-    movlw   high(Hi_scoreL)
-    movwf   EEADRH,A
-    movlw   low(Hi_scoreL)
-    movwf   EEADR,A
-    bcf	    EEPGD
-    bcf	    CFGS
-    bsf	    RD
-    nop
-    movff   EEDATA,high_score_L
-    bcf	    RD
-    movlw   40
-    call    GLCD_delay_ms
-    movlw   high(Hi_scoreH)
-    movwf   EEADRH,A
-    movlw   low(Hi_scoreH)
-    movwf   EEADR,A
-    bcf	    EEPGD
-    bcf	    CFGS
-    bsf	    RD
-    nop  
-    movff   EEDATA,high_score_H
-    return
+       
+;write_to_eeprom:            attempt to write to eeprom
+;    movwf   high_score_L,A
+;    movwf   high_score_H,A
+;    movlw   high(Hi_scoreL)
+;    movwf   EEADRH,A
+;    movlw   low(Hi_scoreL)
+;    movwf   EEADR,A
+;    movff   high_score_L,EEDATA
+;    bcf	    EEPGD
+;    bcf	    CFGS
+;    bsf	    WREN
+;    
+;    bcf	    GIE
+;    movlw   0x55
+;    movwf   EECON2,A
+;    movlw   0XAA
+;    movwf   EECON2,A
+;    bsf	    WR
+;    btfsc   WR
+;    bsf	    GIE
+;    movlw   40
+;    call    GLCD_delay_ms
+;    bcf	    WREN
+;    bcf	    EEIF
+;    movlw   40
+;    call    GLCD_delay_ms
+;highl:    
+;    movlw   high(Hi_scoreH)
+;    movwf   EEADRH,A
+;    movlw   low(Hi_scoreH)
+;    movwf   EEADR,A
+;    movff   high_score_H,EEDATA
+;    bcf	    EEPGD
+;    bcf	    CFGS
+;    bsf	    WREN
+;    
+;    bcf	    GIE
+;    movlw   0x55
+;    movwf   EECON2,A
+;    movlw   0XAA
+;    movwf   EECON2,A
+;    bsf	    WR
+;    btfsc   WR
+;    bsf	    GIE
+;    movlw   40
+;    call    GLCD_delay_ms
+;    bcf	    WREN
+;    bcf	    EEIF
+;    movlw   40
+;    call    GLCD_delay_ms
+;    return
+;    
+;Read_High_score:
+;    movlw   high(Hi_scoreL)
+;    movwf   EEADRH,A
+;    movlw   low(Hi_scoreL)
+;    movwf   EEADR,A
+;    bcf	    EEPGD
+;    bcf	    CFGS
+;    bsf	    RD
+;    nop
+;    movff   EEDATA,high_score_L
+;    bcf	    RD
+;    movlw   40
+;    call    GLCD_delay_ms
+;    movlw   high(Hi_scoreH)
+;    movwf   EEADRH,A
+;    movlw   low(Hi_scoreH)
+;    movwf   EEADR,A
+;    bcf	    EEPGD
+;    bcf	    CFGS
+;    bsf	    RD
+;    nop  
+;    movff   EEDATA,high_score_H
+;    return
 
 delay:	decfsz	delay_count, A	; decrement until zero
 	bra	delay
